@@ -1,0 +1,24 @@
+plugins {
+    id "application"
+    id "java"
+    id "org.openjfx.javafxplugin" version "0.1.0"
+}
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+application {
+    mainClass = "supertreasurer.MainApp"
+}
+
+javafx {
+    version = "21.0.4"
+    modules = [ "javafx.controls" ]
+}
