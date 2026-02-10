@@ -10,14 +10,14 @@ import javafx.scene.control.TabPane;
 
 import supertreasurer.tools.ToolModule;
 import supertreasurer.tools.pdfeditor.PdfEditorTool;
-import supertreasurer.tools.pdfeditor.DummyTool;
+import supertreasurer.tools.BudgetTool.BudgetTool;
 
 public class Core {
 
     public List<ToolModule> tools() {
         return List.of(
             new PdfEditorTool(),
-            new DummyTool()
+            new BudgetTool()
         );
     }
 
