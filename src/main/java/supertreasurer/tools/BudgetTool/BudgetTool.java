@@ -6,26 +6,33 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
-import java.util.UUID;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javafx.geometry.Insets;
+import javafx.scene.control.Accordion;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.Separator;
 import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TabPane;
+import javafx.scene.control.TitledPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-
-
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
+
 import supertreasurer.tools.ToolModule;
+
 
 public class BudgetTool implements ToolModule {
 
@@ -161,71 +168,65 @@ public class BudgetTool implements ToolModule {
         Label TitreGestion = new Label("Gestion des activités");
         Label hintGestion = new Label("Ici on pourra éditer les détails du budget et des activités");
 
-        //ChatGpt , travaille ici
-                VBox gestionRoot = new VBox(10);
+        VBox gestionRoot = new VBox(10);
         gestionRoot.setPadding(new Insets(12));
 
         Button refreshBtn = new Button("Refresh (reload from disk)");
         Label refreshStatus = new Label("");
 
-        javafx.scene.control.Accordion accordion = new javafx.scene.control.Accordion();
+        Accordion accordion = new Accordion();
 
-        java.util.function.Consumer<Void> reloadView = (v) -> {
+        Pattern namePattern  = Pattern.compile("\"name\"\\s*:\\s*\"([^\"]*)\"");
+        Pattern entryPattern = Pattern.compile("\\{[^\\}]*\\}");
+        Pattern datePattern  = Pattern.compile("\"date\"\\s*:\\s*\"([^\"]*)\"");
+        Pattern descPattern  = Pattern.compile("\"description\"\\s*:\\s*\"([^\"]*)\"");
+        Pattern amtPattern   = Pattern.compile("\"amountCents\"\\s*:\\s*(-?\\d+)");
+
+        Consumer<Void> reloadView = (v) -> {
+
             accordion.getPanes().clear();
-
             Path activitiesDir = toolDataDir.resolve("activities");
             List<String> activityIds = listActivityIds(activitiesDir);
 
             for (String activityId : activityIds) {
+
                 Path activityDir = activitiesDir.resolve(activityId);
 
                 String activityName = activityId;
                 Path activityFile = activityDir.resolve("activity.json");
+
                 if (Files.exists(activityFile)) {
                     try {
                         String json = Files.readString(activityFile, StandardCharsets.UTF_8);
-                        java.util.regex.Matcher m = java.util.regex.Pattern
-                            .compile("\"name\"\\s*:\\s*\"([^\"]*)\"")
-                            .matcher(json);
-                        if (m.find()) {
-                            activityName = m.group(1);
-                        }
-                    } catch (IOException ignored) {
-                    }
+                        Matcher m = namePattern.matcher(json);
+                        if (m.find()) activityName = m.group(1);
+                    } catch (IOException ignored) {}
                 }
 
                 long totalCents = 0;
-                java.util.ArrayList<String> incomes = new java.util.ArrayList<>();
-                java.util.ArrayList<String> expenses = new java.util.ArrayList<>();
+                List<String> incomes  = new ArrayList<>();
+                List<String> expenses = new ArrayList<>();
 
                 Path ledgerFile = activityDir.resolve("ledger.json");
+
                 if (Files.exists(ledgerFile)) {
                     try {
                         String ledger = Files.readString(ledgerFile, StandardCharsets.UTF_8);
-
-                        java.util.regex.Pattern pEntry = java.util.regex.Pattern.compile("\\{[^\\}]*\\}");
-                        java.util.regex.Matcher mEntry = pEntry.matcher(ledger);
+                        Matcher mEntry = entryPattern.matcher(ledger);
 
                         while (mEntry.find()) {
                             String entry = mEntry.group();
 
-                            String date = "";
-                            String desc = "";
+                            String date = "", desc = "";
                             long amountCents = 0;
 
-                            java.util.regex.Matcher mDate = java.util.regex.Pattern
-                                .compile("\"date\"\\s*:\\s*\"([^\"]*)\"")
-                                .matcher(entry);
+                            Matcher mDate = datePattern.matcher(entry);
                             if (mDate.find()) date = mDate.group(1);
 
-                            java.util.regex.Matcher mDesc = java.util.regex.Pattern
-                                .compile("\"description\"\\s*:\\s*\"([^\"]*)\"")
-                                .matcher(entry);
+                            Matcher mDesc = descPattern.matcher(entry);
                             if (mDesc.find()) desc = mDesc.group(1);
 
-                            java.util.regex.Matcher mAmt = java.util.regex.Pattern
-                                .compile("\"amountCents\"\\s*:\\s*(-?\\d+)")
-                                .matcher(entry);
+                            Matcher mAmt = amtPattern.matcher(entry);
                             if (mAmt.find()) amountCents = Long.parseLong(mAmt.group(1));
 
                             totalCents += amountCents;
@@ -234,38 +235,31 @@ public class BudgetTool implements ToolModule {
                             if (amountCents >= 0) incomes.add(line);
                             else expenses.add(line);
                         }
-                    } catch (IOException ignored) {
-                    }
+                    } catch (IOException ignored) {}
                 }
 
-                String header = activityName + "  —  balance: " + formatCents(totalCents);
+                String header = activityName + " — balance: " + formatCents(totalCents);
 
-                javafx.scene.control.ListView<String> incomeList = new javafx.scene.control.ListView<>();
+                ListView<String> incomeList = new ListView<>();
                 incomeList.getItems().addAll(incomes);
                 incomeList.setPrefHeight(140);
 
-                javafx.scene.control.ListView<String> expenseList = new javafx.scene.control.ListView<>();
+                ListView<String> expenseList = new ListView<>();
                 expenseList.getItems().addAll(expenses);
                 expenseList.setPrefHeight(140);
 
-                VBox paneContent = new VBox(10);
-                paneContent.getChildren().addAll(
-                    new Label("Incomes"),
-                    incomeList,
-                    new Label("Expenses"),
-                    expenseList
+                VBox paneContent = new VBox(10,
+                    new Label("Incomes"), incomeList,
+                    new Label("Expenses"), expenseList
                 );
 
-                javafx.scene.control.TitledPane pane = new javafx.scene.control.TitledPane(header, paneContent);
-                accordion.getPanes().add(pane);
+                accordion.getPanes().add(new TitledPane(header, paneContent));
             }
 
             refreshStatus.setText("Loaded " + accordion.getPanes().size() + " activities");
         };
 
-        refreshBtn.setOnAction(e -> {
-            reloadView.accept(null);
-        });
+        refreshBtn.setOnAction(e -> reloadView.accept(null));
 
         gestionRoot.getChildren().addAll(
             TitreGestion,
@@ -277,7 +271,7 @@ public class BudgetTool implements ToolModule {
 
         reloadView.accept(null);
 
-        //ChatGpt , fin de travaille ici
+        // Fin de l'onglet de gestion
 
         TabPane budgetTabs = new TabPane();
         Tab tabSaisie = new Tab("Saisie");
