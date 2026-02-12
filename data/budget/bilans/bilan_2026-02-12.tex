@@ -1,0 +1,176 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage[a4paper,margin=2.2cm]{geometry}
+
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage[table]{xcolor}
+\usepackage{graphicx}
+\usepackage{hyperref}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  urlcolor=blue
+}
+
+\definecolor{softgray}{RGB}{245,245,245}
+
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+
+\newcommand{\EUR}[1]{#1~\texteuro}
+
+\title{\textbf{Budget daté du 12/02/2026}}
+\author{Telecom Espoir}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Résumé}
+\begin{itemize}
+  \item Total entrées : \EUR{0.00}
+  \item Total sorties : \EUR{112.50}
+  \item Bilan net : \EUR{-112.50}
+\end{itemize}
+
+\bigskip
+
+\section*{Synthèse globale par activité}
+\rowcolors{2}{softgray}{white}
+\begin{tabular}{L{6.2cm} R{3.2cm} R{3.2cm} R{3.2cm}}
+\toprule
+\textbf{Activité} & \textbf{Entrées} & \textbf{Sorties} & \textbf{Bilan} \\
+\midrule
+epicerie & \EUR{0.00} & \EUR{12.50} & \EUR{-12.50} \\
+maraudes & \EUR{0.00} & \EUR{0.00} & \EUR{0.00} \\
+Mission Humanitaire & \EUR{0.00} & \EUR{0.00} & \EUR{0.00} \\
+Pot d'espoir & \EUR{0.00} & \EUR{100.00} & \EUR{-100.00} \\
+
+\bottomrule
+\end{tabular}
+\rowcolors{2}{}{}
+
+\bigskip
+
+\begin{center}
+\includegraphics[width=0.46\textwidth]{charts/global_income_by_activity.pdf}
+\hfill
+\includegraphics[width=0.46\textwidth]{charts/global_expense_by_activity.pdf}
+\end{center}
+
+\newpage
+
+\section*{epicerie}
+
+\subsection*{Tableau des écritures}
+\rowcolors{2}{softgray}{white}
+\begin{longtable}{L{2.7cm} L{8.2cm} R{3.0cm}}
+\toprule
+\textbf{Date} & \textbf{Description} & \textbf{Montant} \\
+\midrule
+2026-02-11 & Gloire à Demacia & \EUR{-12.50} \\
+
+\bottomrule
+\end{longtable}
+\rowcolors{2}{}{}
+
+\subsection*{Répartition}
+\begin{center}
+\includegraphics[width=0.46\textwidth]{charts/epicerie_income.pdf}
+\hfill
+\includegraphics[width=0.46\textwidth]{charts/epicerie_expense.pdf}
+\end{center}
+
+\bigskip
+\textbf{Bilan activité :} \EUR{-12.50}
+
+\newpage
+\section*{maraudes}
+
+\subsection*{Tableau des écritures}
+\rowcolors{2}{softgray}{white}
+\begin{longtable}{L{2.7cm} L{8.2cm} R{3.0cm}}
+\toprule
+\textbf{Date} & \textbf{Description} & \textbf{Montant} \\
+\midrule
+
+\bottomrule
+\end{longtable}
+\rowcolors{2}{}{}
+
+\subsection*{Répartition}
+\begin{center}
+\includegraphics[width=0.46\textwidth]{charts/maraudes_income.pdf}
+\hfill
+\includegraphics[width=0.46\textwidth]{charts/maraudes_expense.pdf}
+\end{center}
+
+\bigskip
+\textbf{Bilan activité :} \EUR{0.00}
+
+\newpage
+\section*{Mission Humanitaire}
+
+\subsection*{Tableau des écritures}
+\rowcolors{2}{softgray}{white}
+\begin{longtable}{L{2.7cm} L{8.2cm} R{3.0cm}}
+\toprule
+\textbf{Date} & \textbf{Description} & \textbf{Montant} \\
+\midrule
+
+\bottomrule
+\end{longtable}
+\rowcolors{2}{}{}
+
+\subsection*{Répartition}
+\begin{center}
+\includegraphics[width=0.46\textwidth]{charts/mission_income.pdf}
+\hfill
+\includegraphics[width=0.46\textwidth]{charts/mission_expense.pdf}
+\end{center}
+
+\bigskip
+\textbf{Bilan activité :} \EUR{0.00}
+
+\newpage
+\section*{Pot d'espoir}
+
+\subsection*{Tableau des écritures}
+\rowcolors{2}{softgray}{white}
+\begin{longtable}{L{2.7cm} L{8.2cm} R{3.0cm}}
+\toprule
+\textbf{Date} & \textbf{Description} & \textbf{Montant} \\
+\midrule
+2026-02-12 & Les gens boivent trop d'alcool & \EUR{-100.00} \\
+
+\bottomrule
+\end{longtable}
+\rowcolors{2}{}{}
+
+\subsection*{Répartition}
+\begin{center}
+\includegraphics[width=0.46\textwidth]{charts/pot_income.pdf}
+\hfill
+\includegraphics[width=0.46\textwidth]{charts/pot_expense.pdf}
+\end{center}
+
+\bigskip
+\textbf{Bilan activité :} \EUR{-100.00}
+
+\newpage
+
+
+\section*{Bilan final}
+\begin{itemize}
+  \item Total entrées : \EUR{0.00}
+  \item Total sorties : \EUR{112.50}
+  \item \textbf{Bilan net : \EUR{-112.50}}
+\end{itemize}
+
+\end{document}

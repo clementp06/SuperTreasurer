@@ -1,0 +1,24 @@
+\section*{%%ACTIVITY_NAME%%}
+
+\subsection*{Tableau des écritures}
+\rowcolors{2}{softgray}{white}
+\begin{longtable}{L{2.7cm} L{8.2cm} R{3.0cm}}
+\toprule
+\textbf{Date} & \textbf{Description} & \textbf{Montant} \\
+\midrule
+%%ACTIVITY_ROWS%%
+\bottomrule
+\end{longtable}
+\rowcolors{2}{}{}
+
+\subsection*{Répartition}
+\begin{center}
+\includegraphics[width=0.46\textwidth]{%%ACTIVITY_CHART_INCOME%%}
+\hfill
+\includegraphics[width=0.46\textwidth]{%%ACTIVITY_CHART_EXPENSE%%}
+\end{center}
+
+\bigskip
+\textbf{Bilan activité :} \EUR{%%ACTIVITY_NET%%}
+
+\newpage
