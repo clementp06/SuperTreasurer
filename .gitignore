@@ -1,0 +1,14 @@
+# Gradle
+.gradle/build/
+
+# VS Code Java Build output
+bin/main/
+
+# OS
+.DS_StoreThumbs.db
+
+# IDEs
+.idea/*.iml.classpath.project.settings/
+
+# Logs
+*.log

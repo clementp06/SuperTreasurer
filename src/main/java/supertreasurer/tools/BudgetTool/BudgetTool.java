@@ -14,6 +14,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Comparator;
 import java.io.File;
+import java.io.OutputStream;
 
 import javafx.geometry.Insets;
 import javafx.scene.control.Accordion;
@@ -42,6 +43,15 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.DataFormat;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import supertreasurer.tools.ToolModule;
 
@@ -939,5 +949,59 @@ public class BudgetTool implements ToolModule {
         int exit2 = process2.waitFor();
         if (exit2 != 0) throw new RuntimeException("LaTeX compilation failed (pass 2)");
     }
+    private class SheetEtBilan {
+        final Sheet sheet;
+        final long bilanCents;
+        SheetEtBilan(Sheet sheet, long bilanCents) {
+            this.sheet = sheet;
+            this.bilanCents = bilanCents;
+        }
+    }
+        
+    private SheetEtBilan CreateActivitySheet(Workbook workbook, ActivityData activity) {
+        Sheet sheet = workbook.createSheet(activity.name);
 
+        int rowIdx = 0;
+        int bilan = 0;
+        Row header = sheet.createRow(rowIdx++);
+        header.createCell(0).setCellValue("Date");
+        header.createCell(1).setCellValue("Description");
+        header.createCell(2).setCellValue("Amount");
+
+        for (EntryData e : activity.entries) {
+            Row row = sheet.createRow(rowIdx++);
+            row.createCell(0).setCellValue(e.date);
+            row.createCell(1).setCellValue(e.description);
+            row.createCell(2).setCellValue(e.amountCents / 100.0);
+            bilan += e.amountCents;
+        }
+        Row bilanRow = sheet.createRow(rowIdx++);
+        bilanRow.createCell(0).setCellValue("Bilan");
+        bilanRow.createCell(2).setCellValue(bilan / 100.0);
+
+        return new SheetEtBilan(sheet, bilan);
+    }
+    private Workbook createExcel(List<ActivityData> activities) {
+        Workbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook();
+        long globalBilan = 0;
+        Sheet globalSheet = workbook.createSheet("Global");
+        int globalRowIdx = 0;
+        Row globalHeader = globalSheet.createRow(globalRowIdx++);
+        globalHeader.createCell(0).setCellValue("Activity");
+        globalHeader.createCell(1).setCellValue("Bilan");
+
+        for (ActivityData a : activities) {
+            SheetEtBilan sheetEtBilan = CreateActivitySheet(workbook, a);
+            globalBilan += sheetEtBilan.bilanCents;
+
+            Row globalRow = globalSheet.createRow(globalRowIdx++);
+            globalRow.createCell(0).setCellValue(a.name);
+            globalRow.createCell(1).setCellValue(sheetEtBilan.bilanCents / 100.0);
+        }
+        Row globalBilanRow = globalSheet.createRow(globalRowIdx++);
+        globalBilanRow.createCell(0).setCellValue("Global bilan");
+        globalBilanRow.createCell(1).setCellValue(globalBilan / 100.0);
+
+        return workbook;
+    }
 }
