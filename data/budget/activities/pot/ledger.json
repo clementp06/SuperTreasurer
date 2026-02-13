@@ -4,5 +4,11 @@
   "date": "2026-02-12",
   "description": "Les gens boivent trop d'alcool",
   "amountCents": -10000
+},
+{
+  "id": "entry_2eeefd80-b037-4bd3-a259-0940eee3f3c0",
+  "date": "2026-02-12",
+  "description": "bed",
+  "amountCents": 100000
 }
 ]

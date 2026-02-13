@@ -1,1 +1,14 @@
-[]
+[
+{
+  "id": "entry_91ad40b6-3acd-41d0-8d6a-00ae8bf619f2",
+  "date": "2026-02-12",
+  "description": "Ip paris",
+  "amountCents": 100000
+},
+{
+  "id": "entry_c1d7c046-1e21-4105-a52f-cc5c01714e5f",
+  "date": "2026-02-12",
+  "description": "courses",
+  "amountCents": -5500
+}
+]

@@ -4,5 +4,17 @@
   "date": "2026-02-11",
   "description": "Gloire à Demacia",
   "amountCents": -1250
+},
+{
+  "id": "entry_afb03519-45d0-4428-8585-e0912433c0aa",
+  "date": "2026-02-12",
+  "description": "APP Forum",
+  "amountCents": 100000
+},
+{
+  "id": "entry_00801677-8fb1-4117-8ac7-a7d0339db519",
+  "date": "2026-02-12",
+  "description": "Courses",
+  "amountCents": -55000
 }
 ]

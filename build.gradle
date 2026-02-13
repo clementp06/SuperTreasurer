@@ -22,3 +22,7 @@ javafx {
     version = "21.0.4"
     modules = [ "javafx.controls" ]
 }
+dependencies {
+    implementation 'org.apache.pdfbox:pdfbox:2.0.30'
+}
+

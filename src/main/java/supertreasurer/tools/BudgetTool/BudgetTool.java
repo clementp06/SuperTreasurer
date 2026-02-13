@@ -21,7 +21,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.control.Separator;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -33,10 +32,23 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.awt.Color;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+
+
 import supertreasurer.tools.ToolModule;
 
 
 public class BudgetTool implements ToolModule {
+    private long taille_legende = 20;
+    private long taille_titre_chart = 25;
 
     @Override
     public String id() {
@@ -284,9 +296,10 @@ public class BudgetTool implements ToolModule {
         Button genereBilan= new Button("Générer le bilan LaTeX");
         genereBilan.setOnAction(e -> {
             try {
-                createLatex(toolDataDir);
+                Path tex = createLatex(toolDataDir);
+                compileLatexToPdf(tex);
                 refreshStatus.setText("Bilan LaTeX généré avec succès");
-            } catch (IOException ex) {
+            } catch (IOException | InterruptedException ex) {
                 refreshStatus.setText("Erreur lors de la génération du bilan: " + ex.getMessage());
             }
         });
@@ -455,7 +468,7 @@ public class BudgetTool implements ToolModule {
                 .forEach(File::delete);
         }
     }
-    private void createLatex(Path toolDataDir) throws IOException {
+    private Path createLatex(Path toolDataDir) throws IOException {
         Path budgetsDir = toolDataDir;
         Path activitiesDir = budgetsDir.resolve("activities");
         Path bilansDir = budgetsDir.resolve("bilans");
@@ -469,6 +482,7 @@ public class BudgetTool implements ToolModule {
         String reportDate = String.format("%02d/%02d/%04d", today.getDayOfMonth(), today.getMonthValue(), today.getYear());
 
         List<ActivityData> activities = loadActivities(activitiesDir);
+        createCharts(bilansDir, activities);
 
         long totalIncomeCents = 0;
         long totalExpenseCents = 0;
@@ -499,6 +513,7 @@ public class BudgetTool implements ToolModule {
         String fileName = String.format("bilan_%04d-%02d-%02d.tex", today.getYear(), today.getMonthValue(), today.getDayOfMonth());
         Path outFile = bilansDir.resolve(fileName);
         Files.writeString(outFile, tex, StandardCharsets.UTF_8);
+        return outFile;
     }
 
     private static final class ActivityData {
@@ -514,13 +529,11 @@ public class BudgetTool implements ToolModule {
     }
 
     private static final class EntryData {
-        final String id;
         final String date;
         final String description;
         final long amountCents;
 
         EntryData(String id, String date, String description, long amountCents) {
-            this.id = id;
             this.date = date;
             this.description = description;
             this.amountCents = amountCents;
@@ -619,14 +632,10 @@ public class BudgetTool implements ToolModule {
         StringBuilder all = new StringBuilder();
 
         for (ActivityData a : activities) {
-            long income = 0;
-            long expense = 0;
             long net = 0;
 
             StringBuilder rows = new StringBuilder();
             for (EntryData e : a.entries) {
-                if (e.amountCents >= 0) income += e.amountCents;
-                else expense += -e.amountCents;
                 net += e.amountCents;
 
                 String row = rowTemplate;
@@ -694,6 +703,241 @@ public class BudgetTool implements ToolModule {
         String out = s.toLowerCase();
         out = out.replaceAll("[^a-z0-9\\-_.]+", "_");
         return out;
+    }
+    private static final class PieItem {
+    final String label;
+    final long value;
+    PieItem(String label, long value) { this.label = label; this.value = value; }
+    }
+
+    private void createCharts(Path bilansDir, List<ActivityData> activities) throws IOException {
+        Path chartsDir = bilansDir.resolve("charts");
+        Files.createDirectories(chartsDir);
+
+        List<PieItem> globalIncome = new ArrayList<>();
+        List<PieItem> globalExpense = new ArrayList<>();
+
+        for (ActivityData a : activities) {
+            long income = 0;
+            long expense = 0;
+            for (EntryData e : a.entries) {
+                if (e.amountCents >= 0) income += e.amountCents;
+                else expense += -e.amountCents;
+            }
+            globalIncome.add(new PieItem(a.name, income));
+            globalExpense.add(new PieItem(a.name, expense));
+        }
+
+        writePiePdf(chartsDir.resolve("global_income_by_activity.pdf"), "Entrées par activité", globalIncome, taille_titre_chart);
+        writePiePdf(chartsDir.resolve("global_expense_by_activity.pdf"), "Sorties par activité", globalExpense, taille_titre_chart);
+
+        for (ActivityData a : activities) {
+            Map<String, Long> incomeByDesc = new LinkedHashMap<>();
+            Map<String, Long> expenseByDesc = new LinkedHashMap<>();
+
+            for (EntryData e : a.entries) {
+                String key = (e.description == null || e.description.isBlank()) ? "Sans description" : e.description;
+                if (e.amountCents >= 0) incomeByDesc.merge(key, e.amountCents, Long::sum);
+                else expenseByDesc.merge(key, -e.amountCents, Long::sum);
+            }
+
+            writePiePdf(chartsDir.resolve(safeFileStem(a.id) + "_income.pdf"), "Entrées — " + a.name, toPieItems(incomeByDesc), taille_titre_chart);
+            writePiePdf(chartsDir.resolve(safeFileStem(a.id) + "_expense.pdf"), "Sorties — " + a.name, toPieItems(expenseByDesc), taille_titre_chart);
+        }
+    }
+
+    private List<PieItem> toPieItems(Map<String, Long> m) {
+        List<PieItem> out = new ArrayList<>();
+        for (var e : m.entrySet()) out.add(new PieItem(e.getKey(), e.getValue()));
+        return out;
+    }
+
+    private void writePiePdf(Path outFile, String title, List<PieItem> items,long taille_texte) throws IOException {
+        long total = 0;
+        for (PieItem it : items) total += Math.max(0, it.value);
+
+        try (PDDocument doc = new PDDocument()) {
+            PDPage page = new PDPage(PDRectangle.LETTER);
+            doc.addPage(page);
+
+            try (PDPageContentStream cs = new PDPageContentStream(doc, page)) {
+                float h = page.getMediaBox().getHeight();
+
+                float margin = 40f;
+
+                cs.beginText();
+                cs.setFont(PDType1Font.HELVETICA_BOLD, taille_texte);
+                cs.newLineAtOffset(margin, h - margin);
+                cs.showText(safePdfText(title));
+                cs.endText();
+
+                if (total <= 0) {
+                    cs.beginText();
+                    cs.setFont(PDType1Font.HELVETICA, taille_texte);
+                    cs.newLineAtOffset(margin, h - margin - 60f);
+                    cs.showText("No data");
+                    cs.endText();
+                } else {
+                    float cx = margin + 210f;
+                    float cy = h / 2f - 20f;
+                    float r  = 140f;
+
+                    drawPie(cs, cx, cy, r, items, total);
+                    drawCircleOutline(cs, cx, cy, r);
+                    
+                    float legendX = cx - r;
+                    float legendYTop = cy - r - 20f; // 20px sous le cercle
+                    drawLegend(cs, legendX, legendYTop, items, total);
+
+                }
+            }
+
+            Files.createDirectories(outFile.getParent());
+            doc.save(outFile.toFile());
+        }
+    }
+
+    private void drawLegend(PDPageContentStream cs, float x, float yTop, List<PieItem> items, long total) throws IOException {
+        float y = yTop;
+
+        float lineHeight = taille_legende + 6f; // dépend de la police
+        float boxSize = Math.max(8f, taille_legende * 0.8f);
+
+        int colorIdx = 0;
+
+        for (PieItem it : items) {
+            long v = Math.max(0, it.value);
+            if (v == 0) continue;
+
+            int[] rgb = palette(colorIdx++);
+            cs.setNonStrokingColor(new Color(rgb[0], rgb[1], rgb[2]));
+            cs.addRect(x, y - boxSize, boxSize, boxSize);
+            cs.fill();
+
+            cs.setNonStrokingColor(Color.BLACK);
+
+            int pct = (int)Math.round((v * 100.0) / total);
+            String label = safePdfText(it.label);
+            if (label.length() > 45) label = label.substring(0, 45) + "...";
+            String line = label + " — " + pct + "%";
+
+            cs.beginText();
+            cs.setFont(PDType1Font.HELVETICA, taille_legende);
+            cs.newLineAtOffset(x + boxSize + 6f, y - boxSize + 1f);
+            cs.showText(line);
+            cs.endText();
+
+            y -= lineHeight;
+            if (y < 40f) break; // marge bas
+        }
+    }
+
+
+    private void drawPie(PDPageContentStream cs, float cx, float cy, float r, List<PieItem> items, long total) throws IOException {
+        double start = 0.0;
+        int colorIdx = 0;
+
+        for (PieItem it : items) {
+            long v = Math.max(0, it.value);
+            if (v == 0) continue;
+
+            double sweep = (v * 2.0 * Math.PI) / total;
+            double end = start + sweep;
+
+            int[] rgb = palette(colorIdx++);
+            cs.setNonStrokingColor(new Color(rgb[0], rgb[1], rgb[2]));
+
+            List<float[]> arcPts = wedgePolygon(cx, cy, r, start, end, 80);
+
+            cs.moveTo(cx, cy);
+            for (float[] p : arcPts) cs.lineTo(p[0], p[1]);
+            cs.closePath();
+            cs.fill();
+
+            start = end;
+        }
+    }
+
+    private List<float[]> wedgePolygon(float cx, float cy, float r, double a0, double a1, int maxSteps) {
+        double sweep = a1 - a0;
+        int steps = Math.max(2, (int)Math.ceil(Math.abs(sweep) / (2.0 * Math.PI) * maxSteps));
+
+        List<float[]> pts = new ArrayList<>();
+        for (int i = 0; i <= steps; i++) {
+            double a = a0 + (sweep * i / steps);
+            float x = (float)(cx + r * Math.cos(a));
+            float y = (float)(cy + r * Math.sin(a));
+            pts.add(new float[]{x, y});
+        }
+        return pts;
+    }
+
+    private void drawCircleOutline(PDPageContentStream cs, float cx, float cy, float r) throws IOException {
+        cs.setStrokingColor(new Color(0, 0, 0));
+
+        int steps = 140;
+        cs.moveTo(cx + r, cy);
+        for (int i = 1; i <= steps; i++) {
+            double a = (2.0 * Math.PI * i) / steps;
+            cs.lineTo((float)(cx + r * Math.cos(a)), (float)(cy + r * Math.sin(a)));
+        }
+        cs.closePath();
+        cs.stroke();
+    }
+
+    private int[] palette(int idx) {
+        int[][] p = {
+            {52, 152, 219},
+            {46, 204, 113},
+            {231, 76, 60},
+            {155, 89, 182},
+            {241, 196, 15},
+            {26, 188, 156},
+            {230, 126, 34},
+            {127, 140, 141},
+            {22, 160, 133},
+            {41, 128, 185},
+            {142, 68, 173},
+            {192, 57, 43}
+        };
+        return p[idx % p.length];
+    }
+
+    private String safePdfText(String s) {
+        if (s == null) return "";
+        return s.replace("\r", " ").replace("\n", " ");
+    }
+    private void compileLatexToPdf(Path texFile) throws IOException, InterruptedException {
+
+        Path workingDir = texFile.getParent();
+        String fileName = texFile.getFileName().toString();
+
+        ProcessBuilder pb = new ProcessBuilder(
+            "pdflatex",
+            "-interaction=nonstopmode",
+            fileName
+        );
+
+        pb.directory(workingDir.toFile());
+        pb.redirectErrorStream(true);
+
+        // 1ère compilation
+        Process process1 = pb.start();
+        try (var reader = new java.io.BufferedReader(
+                new java.io.InputStreamReader(process1.getInputStream()))) {
+            while (reader.readLine() != null) {}
+        }
+        int exit1 = process1.waitFor();
+        if (exit1 != 0) throw new RuntimeException("LaTeX compilation failed (pass 1)");
+
+        // 2ème compilation (TOC / refs / figures)
+        Process process2 = pb.start();
+        try (var reader = new java.io.BufferedReader(
+                new java.io.InputStreamReader(process2.getInputStream()))) {
+            while (reader.readLine() != null) {}
+        }
+        int exit2 = process2.waitFor();
+        if (exit2 != 0) throw new RuntimeException("LaTeX compilation failed (pass 2)");
     }
 
 }
