@@ -20,7 +20,7 @@ application {
 
 javafx {
     version = "21.0.4"
-    modules = [ "javafx.controls" ]
+    modules = [ 'javafx.controls', 'javafx.fxml', 'javafx.swing' ]
 }
 dependencies {
     implementation "org.apache.pdfbox:pdfbox:2.0.30"
