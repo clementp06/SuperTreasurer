@@ -27,6 +27,9 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.paint.Color;
 import javafx.scene.layout.Pane;
+import javafx.scene.control.TextField;
+import javafx.collections.FXCollections;
+
 
 
 
@@ -37,6 +40,7 @@ public class PdfEditorTool implements ToolModule {
     private BufferedImage bim;
     private ImageView imageView;
     private StackPane pdfStack;
+    private VBox editor_box= new VBox();
     private class Balise {
         String type;
         String name;
@@ -71,10 +75,37 @@ public class PdfEditorTool implements ToolModule {
         Balise balise;
         TextField nameField;
         ComboBox<String> typeComboBox;
+        TextField xField;
+        TextField yField;
+        TextField widthField;
+        TextField heightField;
+
         Balise_Modifier(Balise balise) {
             this.balise = balise;
+            this.nameField = new TextField(balise.name);
+            this.typeComboBox = new ComboBox<String>(FXCollections.observableArrayList("TEXT", "IMAGE"));
+            this.xField = new TextField(String.valueOf(balise.x));
+            this.yField = new TextField(String.valueOf(balise.y));
+            this.widthField = new TextField(String.valueOf(balise.width));
+            this.heightField = new TextField(String.valueOf(balise.height));
+            void show() {
+                editor_box.getChildren().clear();
+                editor_box.getChildren().addAll(
+                    nameField,
+                    typeComboBox,
+                    xField,
+                    yField,
+                    widthField,
+                    heightField
+                );
+            }
+             void save() {
+                balise.updateName(nameField.getText());
+                balise.updateType(typeComboBox.getValue());
+                balise.updatePosition(Integer.parseInt(xField.getText()), Integer.parseInt(yField.getText()));
+                balise.updateSize(Integer.parseInt(widthField.getText()), Integer.parseInt(heightField.getText()));
+            }
         }
-    }
     private ArrayList<Balise> balises = new ArrayList<>();
     private Pane overlay;
 
@@ -140,14 +171,18 @@ public class PdfEditorTool implements ToolModule {
         
         // Fin de la création du tab de pattern
         //Début de la création du tab d'édition
-        VBox editor_box= new VBox();
+
         editor_box.getChildren().add(new Label("Edit Template"));
         editor_box.getChildren().add(import_pdf_btn);
         Button Modify_balise_btn = new Button("Modify Balise");
         Modify_balise_btn.setOnAction(e -> {
             // Logique de modification de balise
             for (Balise b : balises) {
-                
+                Balise_Modifier bm = new Balise_Modifier(b);
+                bm.show();
+                bm.save();
+                overlay.getChildren().clear();
+                drawBalisePreview(b);
             }
         });
         //Fin de la création du tab d'édition
