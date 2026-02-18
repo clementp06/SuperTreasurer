@@ -25,6 +25,8 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.layout.VBox;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Rectangle;
@@ -34,6 +36,8 @@ import javafx.scene.control.TextField;
 import javafx.collections.FXCollections;
 import javafx.scene.control.Separator;
 import java.nio.file.Files;
+
+import java.util.regex.Pattern;
 
 
 
@@ -48,6 +52,7 @@ public class PdfEditorTool implements ToolModule {
     private VBox editor_box= new VBox();
     private ArrayList<Balise> balises = new ArrayList<>();
     private Pane overlay;
+    private VBox TemplateEditionBox = new VBox();
     private class Balise {
         String type;
         String name;
@@ -168,6 +173,60 @@ public class PdfEditorTool implements ToolModule {
             }
         }
         }
+    private class Template {
+        String name;
+        Path folderPath;
+        Path pdfPath;
+        ArrayList<Balise> balises = new ArrayList<>();
+
+        Template(String templateName) throws IOException {
+            this.name = templateName;
+            this.folderPath = Path.of("data", "pdfeditor", "templates", templateName);
+            this.pdfPath = folderPath.resolve("template.pdf");
+
+            loadBalisesFromJson();
+        }
+
+        private void loadBalisesFromJson() throws IOException {
+            Path jsonPath = folderPath.resolve("template.json");
+            if (!Files.exists(jsonPath)) return;
+
+            String json = Files.readString(jsonPath, StandardCharsets.UTF_8);
+
+            Pattern blockPattern = Pattern.compile("\\{[^\\{\\}]*\"type\"[^\\{\\}]*\\}");
+            Pattern typePattern  = Pattern.compile("\"type\"\\s*:\\s*\"([^\"]*)\"");
+            Pattern namePattern  = Pattern.compile("\"name\"\\s*:\\s*\"([^\"]*)\"");
+            Pattern xPattern     = Pattern.compile("\"x\"\\s*:\\s*(-?\\d+)");
+            Pattern yPattern     = Pattern.compile("\"y\"\\s*:\\s*(-?\\d+)");
+            Pattern wPattern     = Pattern.compile("\"width\"\\s*:\\s*(-?\\d+)");
+            Pattern hPattern     = Pattern.compile("\"height\"\\s*:\\s*(-?\\d+)");
+
+            Matcher mBlock = blockPattern.matcher(json);
+
+            while (mBlock.find()) {
+                String block = mBlock.group();
+
+                String type = matchString(typePattern, block);
+                String name = matchString(namePattern, block);
+                int x = matchInt(xPattern, block);
+                int y = matchInt(yPattern, block);
+                int w = matchInt(wPattern, block);
+                int h = matchInt(hPattern, block);
+
+                balises.add(new Balise(type, name, x, y, w, h));
+            }
+    }
+
+        private String matchString(Pattern p, String text) {
+            Matcher m = p.matcher(text);
+            return m.find() ? m.group(1) : "";
+        }
+
+        private int matchInt(Pattern p, String text) {
+            Matcher m = p.matcher(text);
+            return m.find() ? Integer.parseInt(m.group(1)) : 0;
+        }
+    }
 
 
     @Override
@@ -257,8 +316,23 @@ public class PdfEditorTool implements ToolModule {
         pattern_creator.setContent(visualisateur_et_editeur);
 
         //Fin de la création du tab d'édition
+        //Début du tab de remplissage de template
+        Tab templates = new Tab("Templates");
+        SplitPane template_filler = new SplitPane();
+        ScrollPane template_scroll = new ScrollPane();
+        template_scroll.setFitToWidth(true);
+        template_filler.setDividerPositions(0.5);
 
+        Button ImportTemplateBtn = new Button("Import Template");
+        Button ExportTemplateBtn = new Button("Export Template");
 
+        TemplateEditionBox.getChildren().addAll(new Label("Template Editor"),ImportTemplateBtn,ExportTemplateBtn);
+        template_scroll.setContent(TemplateEditionBox);
+
+        template_filler.getItems().add(template_scroll);
+        templates.setContent(template_filler);
+        //Fin du tab de remplissage de template
+        pdf_tabs.getTabs().add(templates);
         pdf_tabs.getTabs().add(pattern_creator);
 
         tab.setContent(pdf_tabs);
