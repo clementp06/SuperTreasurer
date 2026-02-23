@@ -1,47 +1,64 @@
 package supertreasurer.tools.pdfeditor;
 
-import javafx.scene.control.ScrollPane; // ✅ JavaFX
+import javafx.scene.control.ScrollPane;
 
+import java.awt.Desktop;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
+import javafx.collections.FXCollections;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
+
 import supertreasurer.tools.ToolModule;
+
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.rendering.ImageType;
+
 import java.awt.image.BufferedImage;
 import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.image.ImageView;
-import javafx.scene.control.SplitPane;
-import javafx.scene.layout.VBox;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.regex.Matcher;
 
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.StackPane;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.paint.Color;
-import javafx.scene.layout.Pane;
-import javafx.scene.control.TextField;
-import javafx.collections.FXCollections;
-import javafx.scene.control.Separator;
+import java.io.File;
+import java.io.IOException;
+
 import java.nio.file.Files;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-
-
-
 
 public class PdfEditorTool implements ToolModule {
     private PDDocument pdfDocument;
@@ -49,10 +66,12 @@ public class PdfEditorTool implements ToolModule {
     private BufferedImage bim;
     private ImageView imageView;
     private StackPane pdfStack;
-    private VBox editor_box= new VBox();
+    private VBox editor_box = new VBox();
     private ArrayList<Balise> balises = new ArrayList<>();
     private Pane overlay;
+
     private VBox TemplateEditionBox = new VBox();
+
     private class Balise {
         String type;
         String name;
@@ -68,21 +87,12 @@ public class PdfEditorTool implements ToolModule {
             this.width = width;
             this.height = height;
         }
-        void updatePosition(int x, int y) {
-            this.x = x;
-            this.y = y;
-        }
-        void updateSize(int width, int height) {
-            this.width = width;
-            this.height = height;
-        }
-        void updateType(String type) {
-            this.type = type;
-        }
-        void updateName(String name) {
-            this.name = name;
-        }
+        void updatePosition(int x, int y) { this.x = x; this.y = y; }
+        void updateSize(int width, int height) { this.width = width; this.height = height; }
+        void updateType(String type) { this.type = type; }
+        void updateName(String name) { this.name = name; }
     }
+
     private class Balise_Modifier {
         Balise balise;
         TextField nameField;
@@ -104,7 +114,8 @@ public class PdfEditorTool implements ToolModule {
         Balise_Modifier(Balise balise) {
             this.balise = balise;
             this.nameField = new TextField(balise.name);
-            this.typeComboBox = new ComboBox<String>(FXCollections.observableArrayList("TEXT", "IMAGE"));
+            this.typeComboBox = new ComboBox<>(FXCollections.observableArrayList("TEXT", "IMAGE"));
+            this.typeComboBox.setValue(balise.type == null || balise.type.isBlank() ? "TEXT" : balise.type);
             this.xField = new TextField(String.valueOf(balise.x));
             this.yField = new TextField(String.valueOf(balise.y));
             this.widthField = new TextField(String.valueOf(balise.width));
@@ -121,58 +132,50 @@ public class PdfEditorTool implements ToolModule {
             deleteButton.setOnAction(e -> delete());
             this.separator = new Separator();
         }
+
         void show() {
             editor_box.getChildren().addAll(
-                nameLabel,
-                nameField,
-                typeLabel,
-                typeComboBox,
-                xLabel,
-                xField,
-                yLabel,
-                yField,
-                widthLabel,
-                widthField,
-                heightLabel,
-                heightField,
-                saveButton,
-                deleteButton,
+                nameLabel, nameField,
+                typeLabel, typeComboBox,
+                xLabel, xField,
+                yLabel, yField,
+                widthLabel, widthField,
+                heightLabel, heightField,
+                saveButton, deleteButton,
                 separator
             );
         }
+
         void save() {
             balise.updateName(nameField.getText());
             balise.updateType(typeComboBox.getValue());
             balise.updatePosition(Integer.parseInt(xField.getText()), Integer.parseInt(yField.getText()));
             balise.updateSize(Integer.parseInt(widthField.getText()), Integer.parseInt(heightField.getText()));
-            overlay.getChildren().clear();
-            for (Balise b : balises) {
-                drawBalisePreview(b);
+            if (overlay != null) {
+                overlay.getChildren().clear();
+                for (Balise b : balises) drawBalisePreview(b);
             }
-        };
+        }
+
         void delete() {
             balises.remove(balise);
-            editor_box.getChildren().remove(nameLabel);
-            editor_box.getChildren().remove(nameField);
-            editor_box.getChildren().remove(typeLabel);
-            editor_box.getChildren().remove(typeComboBox);
-            editor_box.getChildren().remove(xLabel);
-            editor_box.getChildren().remove(xField);
-            editor_box.getChildren().remove(yLabel);
-            editor_box.getChildren().remove(yField);
-            editor_box.getChildren().remove(widthLabel);
-            editor_box.getChildren().remove(widthField);
-            editor_box.getChildren().remove(heightLabel);
-            editor_box.getChildren().remove(heightField);
-            editor_box.getChildren().remove(separator);
-            editor_box.getChildren().remove(saveButton);
-            editor_box.getChildren().remove(deleteButton);
-            overlay.getChildren().clear();
-            for (Balise b : balises) {
-                drawBalisePreview(b);
+            editor_box.getChildren().removeAll(
+                nameLabel, nameField,
+                typeLabel, typeComboBox,
+                xLabel, xField,
+                yLabel, yField,
+                widthLabel, widthField,
+                heightLabel, heightField,
+                saveButton, deleteButton,
+                separator
+            );
+            if (overlay != null) {
+                overlay.getChildren().clear();
+                for (Balise b : balises) drawBalisePreview(b);
             }
         }
-        }
+    }
+
     private class Template {
         String name;
         Path folderPath;
@@ -183,7 +186,6 @@ public class PdfEditorTool implements ToolModule {
             this.name = templateName;
             this.folderPath = Path.of("data", "pdfeditor", "templates", templateName);
             this.pdfPath = folderPath.resolve("template.pdf");
-
             loadBalisesFromJson();
         }
 
@@ -202,7 +204,6 @@ public class PdfEditorTool implements ToolModule {
             Pattern hPattern     = Pattern.compile("\"height\"\\s*:\\s*(-?\\d+)");
 
             Matcher mBlock = blockPattern.matcher(json);
-
             while (mBlock.find()) {
                 String block = mBlock.group();
 
@@ -215,7 +216,7 @@ public class PdfEditorTool implements ToolModule {
 
                 balises.add(new Balise(type, name, x, y, w, h));
             }
-    }
+        }
 
         private String matchString(Pattern p, String text) {
             Matcher m = p.matcher(text);
@@ -227,7 +228,6 @@ public class PdfEditorTool implements ToolModule {
             return m.find() ? Integer.parseInt(m.group(1)) : 0;
         }
     }
-
 
     @Override
     public String id() {
@@ -241,23 +241,23 @@ public class PdfEditorTool implements ToolModule {
 
     @Override
     public Tab createTab(Path toolDataDir) {
-        Tab tab= new Tab("PDF Editor");
+        Tab tab = new Tab("PDF Editor");
         TabPane pdf_tabs = new TabPane();
 
-        Tab pattern_creator= new Tab();
-        // Début de la création du tab de pattern
-
+        Tab pattern_creator = new Tab();
         pattern_creator.setText("Pattern Creator");
+
         Button import_pdf_btn = new Button("Import PDF");
         Label attachedPathLabel = new Label("No file selected");
         final Path[] selectedFile = new Path[1];
+
         ScrollPane visualisateur = new ScrollPane();
         visualisateur.setFitToWidth(true);
         visualisateur.setFitToHeight(true);
+
         pdfStack = new StackPane();
         visualisateur.setContent(pdfStack);
 
-    
         import_pdf_btn.setOnAction(e -> {
             Window w = import_pdf_btn.getScene().getWindow();
             FileChooser fc = new FileChooser();
@@ -267,34 +267,37 @@ public class PdfEditorTool implements ToolModule {
                 selectedFile[0] = f.toPath();
                 attachedPathLabel.setText(f.getAbsolutePath());
             }
+
             try {
-            if (selectedFile[0] != null) {
-                pdfDocument = PDDocument.load(selectedFile[0].toFile());
-                pdfRenderer = new PDFRenderer(pdfDocument);
-                bim = pdfRenderer.renderImageWithDPI(0, 300, ImageType.RGB);
-                imageView = new ImageView(SwingFXUtils.toFXImage(bim, null));
-                imageView.setOnMouseClicked(this::onPdfClicked);
-                imageView.setPreserveRatio(true);
-                imageView.setFitWidth(visualisateur.getWidth());
-                pdfStack.getChildren().clear();
+                if (selectedFile[0] != null) {
+                    pdfDocument = PDDocument.load(selectedFile[0].toFile());
+                    pdfRenderer = new PDFRenderer(pdfDocument);
+                    bim = pdfRenderer.renderImageWithDPI(0, 300, ImageType.RGB);
+                    imageView = new ImageView(SwingFXUtils.toFXImage(bim, null));
+                    imageView.setOnMouseClicked(this::onPdfClicked);
+                    imageView.setPreserveRatio(true);
+                    imageView.setFitWidth(visualisateur.getWidth());
 
-                overlay = new Pane();
-                overlay.setPickOnBounds(false);
-                overlay.setMouseTransparent(true);
+                    pdfStack.getChildren().clear();
 
-                pdfStack.getChildren().addAll(imageView, overlay);
+                    overlay = new Pane();
+                    overlay.setPickOnBounds(false);
+                    overlay.setMouseTransparent(true);
 
-            }
+                    pdfStack.getChildren().addAll(imageView, overlay);
+                }
             } catch (IOException g) {
+                attachedPathLabel.setText("Error: " + g.getMessage());
             }
         });
-        Button save_pattern_btn= new Button("Save Pattern");
+
+        Button save_pattern_btn = new Button("Save Pattern");
         TextField pattern_name_field = new TextField();
         pattern_name_field.setPromptText("Pattern Name");
 
         save_pattern_btn.setOnAction(e -> {
             try {
-                if (selectedFile[0] != null){
+                if (selectedFile[0] != null) {
                     save_pattern(selectedFile[0], pattern_name_field.getText());
                 }
             } catch (IOException ex) {
@@ -302,69 +305,284 @@ public class PdfEditorTool implements ToolModule {
             }
         });
 
-
+        editor_box.getChildren().clear();
+        editor_box.setPadding(new Insets(10));
+        editor_box.setSpacing(8);
         editor_box.getChildren().add(new Label("Edit Template"));
         editor_box.getChildren().add(import_pdf_btn);
+        editor_box.getChildren().add(attachedPathLabel);
         editor_box.getChildren().add(pattern_name_field);
         editor_box.getChildren().add(save_pattern_btn);
 
         ScrollPane editor_scroll = new ScrollPane(editor_box);
+        editor_scroll.setFitToWidth(true);
+
         SplitPane visualisateur_et_editeur = new SplitPane();
         visualisateur_et_editeur.setDividerPositions(0.8);
-        visualisateur_et_editeur.getItems().addAll(visualisateur,editor_scroll);
+        visualisateur_et_editeur.getItems().addAll(visualisateur, editor_scroll);
 
         pattern_creator.setContent(visualisateur_et_editeur);
+        pattern_creator.setClosable(false);
 
-        //Fin de la création du tab d'édition
-        //Début du tab de remplissage de template
         Tab templates = new Tab("Templates");
+        templates.setClosable(false);
+
         SplitPane template_filler = new SplitPane();
+        template_filler.setDividerPositions(0.65);
+
+        ScrollPane template_view_scroll = new ScrollPane();
+        template_view_scroll.setFitToWidth(true);
+        template_view_scroll.setFitToHeight(true);
+
+        StackPane templateStack = new StackPane();
+        templateStack.setAlignment(Pos.TOP_LEFT);
+
+        ImageView templateImageView = new ImageView();
+        templateImageView.setPreserveRatio(true);
+
+        Pane templateOverlay = new Pane();
+        templateOverlay.setPickOnBounds(false);
+        templateOverlay.setMouseTransparent(true);
+
+        templateStack.getChildren().addAll(templateImageView, templateOverlay);
+        template_view_scroll.setContent(templateStack);
+
+        template_view_scroll.viewportBoundsProperty().addListener((obs, oldV, newV) -> {
+            if (newV != null) {
+                double w = newV.getWidth();
+                if (w > 0) templateImageView.setFitWidth(w);
+            }
+        });
+
         ScrollPane template_scroll = new ScrollPane();
         template_scroll.setFitToWidth(true);
-        template_filler.setDividerPositions(0.5);
 
-        Button ImportTemplateBtn = new Button("Import Template");
-        Button ExportTemplateBtn = new Button("Export Template");
+        ComboBox<String> templateSelector = new ComboBox<>();
+        templateSelector.setItems(FXCollections.observableArrayList(listTemplateNames()));
+        templateSelector.setPromptText("Select template");
 
-        TemplateEditionBox.getChildren().addAll(new Label("Template Editor"),ImportTemplateBtn,ExportTemplateBtn);
+        Button refreshTemplatesBtn = new Button("Refresh list");
+        Button ImportTemplateBtn = new Button("Load Template");
+        Button SeeChangesBtn = new Button("See Changes");
+        Button ExportTemplateBtn = new Button("Export PDF");
+        Button OpenResultsBtn = new Button("Open results folder");
+
+        Label templateStatus = new Label("");
+
+        VBox fieldsBox = new VBox();
+        fieldsBox.setSpacing(8);
+        fieldsBox.setPadding(new Insets(8));
+
+        ScrollPane fieldsScroll = new ScrollPane(fieldsBox);
+        fieldsScroll.setFitToWidth(true);
+        fieldsScroll.setPrefViewportHeight(450);
+
+        TemplateEditionBox.getChildren().clear();
+        TemplateEditionBox.setPadding(new Insets(10));
+        TemplateEditionBox.setSpacing(10);
+
+        TemplateEditionBox.getChildren().addAll(
+            new Label("Template Filler"),
+            new HBox(10, templateSelector, refreshTemplatesBtn),
+            ImportTemplateBtn,
+            new Separator(),
+            new Label("Fields"),
+            fieldsScroll,
+            new Separator(),
+            SeeChangesBtn,
+            ExportTemplateBtn,
+            OpenResultsBtn,
+            templateStatus
+        );
+
         template_scroll.setContent(TemplateEditionBox);
 
-        template_filler.getItems().add(template_scroll);
+        final Template[] currentTemplate = new Template[1];
+        final PDDocument[] currentTemplateDoc = new PDDocument[1];
+        final BufferedImage[] currentTemplateImg = new BufferedImage[1];
+
+        Map<Balise, TextField> textInputs = new HashMap<>();
+        Map<Balise, Path> imageInputs = new HashMap<>();
+        Map<Balise, Label> imageLabels = new HashMap<>();
+
+        refreshTemplatesBtn.setOnAction(e -> {
+            templateSelector.setItems(FXCollections.observableArrayList(listTemplateNames()));
+            templateStatus.setText("List refreshed");
+        });
+
+        ImportTemplateBtn.setOnAction(e -> {
+            String selected = templateSelector.getValue();
+            if (selected == null || selected.isBlank()) {
+                templateStatus.setText("Select a template first");
+                return;
+            }
+
+            try {
+                if (currentTemplateDoc[0] != null) {
+                    try { currentTemplateDoc[0].close(); } catch (Exception ignored) {}
+                    currentTemplateDoc[0] = null;
+                }
+
+                currentTemplate[0] = new Template(selected);
+
+                if (!Files.exists(currentTemplate[0].pdfPath)) {
+                    templateStatus.setText("Missing: " + currentTemplate[0].pdfPath);
+                    return;
+                }
+
+                currentTemplateDoc[0] = PDDocument.load(currentTemplate[0].pdfPath.toFile());
+                PDFRenderer renderer = new PDFRenderer(currentTemplateDoc[0]);
+                currentTemplateImg[0] = renderer.renderImageWithDPI(0, 220, ImageType.RGB);
+
+                templateImageView.setImage(SwingFXUtils.toFXImage(currentTemplateImg[0], null));
+                templateOverlay.getChildren().clear();
+
+                fieldsBox.getChildren().clear();
+                textInputs.clear();
+                imageInputs.clear();
+                imageLabels.clear();
+
+                for (Balise b : currentTemplate[0].balises) {
+                    Label title = new Label(b.name + " (" + b.type + ")");
+                    fieldsBox.getChildren().add(title);
+
+                    if ("TEXT".equalsIgnoreCase(b.type)) {
+                        TextField tf = new TextField();
+                        tf.setPromptText("Text...");
+                        textInputs.put(b, tf);
+                        fieldsBox.getChildren().add(tf);
+                    } else if ("IMAGE".equalsIgnoreCase(b.type)) {
+                        HBox row = new HBox(10);
+                        Button choose = new Button("Import image");
+                        Label chosen = new Label("No image selected");
+                        row.getChildren().addAll(choose, chosen);
+
+                        imageLabels.put(b, chosen);
+
+                        choose.setOnAction(ev -> {
+                            Window w = choose.getScene().getWindow();
+                            FileChooser fc = new FileChooser();
+                            fc.setTitle("Select image");
+                            fc.getExtensionFilters().addAll(
+                                new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg")
+                            );
+                            File f = fc.showOpenDialog(w);
+                            if (f != null) {
+                                imageInputs.put(b, f.toPath());
+                                chosen.setText(f.getName());
+                                templateStatus.setText("Image set for " + b.name);
+                            }
+                        });
+
+                        fieldsBox.getChildren().add(row);
+                    } else {
+                        fieldsBox.getChildren().add(new Label("Unknown type"));
+                    }
+
+                    fieldsBox.getChildren().add(new Separator());
+                }
+
+                templateStatus.setText("Loaded template: " + selected);
+
+            } catch (IOException ex) {
+                templateStatus.setText("Error: " + ex.getMessage());
+            }
+        });
+
+        SeeChangesBtn.setOnAction(e -> {
+            if (currentTemplate[0] == null || currentTemplateDoc[0] == null || currentTemplateImg[0] == null) {
+                templateStatus.setText("Load a template first");
+                return;
+            }
+
+            templateOverlay.getChildren().clear();
+
+            for (Balise b : currentTemplate[0].balises) {
+                if ("TEXT".equalsIgnoreCase(b.type)) {
+                    TextField tf = textInputs.get(b);
+                    if (tf != null) {
+                        String v = tf.getText();
+                        if (v != null && !v.isBlank()) {
+                            Node n = makeTextPreviewNode(currentTemplateDoc[0], currentTemplateImg[0], templateImageView, b, v);
+                            if (n != null) templateOverlay.getChildren().add(n);
+                        }
+                    }
+                } else if ("IMAGE".equalsIgnoreCase(b.type)) {
+                    Path p = imageInputs.get(b);
+                    if (p != null && Files.exists(p)) {
+                        Node n = makeImagePreviewNode(currentTemplateDoc[0], currentTemplateImg[0], templateImageView, b, p);
+                        if (n != null) templateOverlay.getChildren().add(n);
+                    }
+                }
+            }
+
+            templateStatus.setText("Preview updated");
+        });
+
+        ExportTemplateBtn.setOnAction(e -> {
+            if (currentTemplate[0] == null) {
+                templateStatus.setText("Load a template first");
+                return;
+            }
+
+            try {
+                Path out = exportFilledTemplate(currentTemplate[0], textInputs, imageInputs);
+                templateStatus.setText("Exported: " + out.getFileName());
+            } catch (IOException ex) {
+                templateStatus.setText("Export error: " + ex.getMessage());
+            }
+        });
+
+        OpenResultsBtn.setOnAction(e -> {
+            try {
+                Path results = Path.of("data", "pdfeditor", "results");
+                Files.createDirectories(results);
+                openFolder(results);
+            } catch (IOException ex) {
+                templateStatus.setText("Error: " + ex.getMessage());
+            }
+        });
+
+        template_filler.getItems().addAll(template_view_scroll, template_scroll);
         templates.setContent(template_filler);
-        //Fin du tab de remplissage de template
-        pdf_tabs.getTabs().add(templates);
+
         pdf_tabs.getTabs().add(pattern_creator);
+        pdf_tabs.getTabs().add(templates);
 
         tab.setContent(pdf_tabs);
+        tab.setClosable(false);
         return tab;
     }
+
     private void onPdfClicked(MouseEvent event) {
         if (imageView == null) return;
 
         double clickX = event.getX();
         double clickY = event.getY();
 
-        System.out.println("Click at image coords: " + clickX + ", " + clickY);
-
-        // Création d'une balise temporaire (test)
         double[] pdfCoords = imageToPdfCoords(clickX, clickY);
+
         Balise b = new Balise("TEXT", "balise_test",
-                (int) pdfCoords[0],
-                (int) pdfCoords[1],
-                100,
-                20);
+            (int) pdfCoords[0],
+            (int) pdfCoords[1],
+            100,
+            20
+        );
 
         balises.add(b);
+
         Balise_Modifier modifier = new Balise_Modifier(b);
         modifier.show();
+
         drawBalisePreview(b);
     }
+
     private void drawBalisePreview(Balise b) {
-        if (overlay == null) return;
+        if (overlay == null || imageView == null || pdfDocument == null) return;
 
         double[] imgCoords = pdfToImageCoords(b.x, b.y);
 
-        Rectangle r = new Rectangle(b.width, b.height);
+        Rectangle r = new Rectangle(scalePdfWToView(imageView, pdfDocument, b.width), scalePdfHToView(imageView, pdfDocument, b.height));
         r.setStroke(Color.RED);
         r.setFill(Color.TRANSPARENT);
         r.setStrokeWidth(2);
@@ -378,7 +596,7 @@ public class PdfEditorTool implements ToolModule {
     private double[] imageToPdfCoords(double xImg, double yImg) {
         PDPage page = pdfDocument.getPage(0);
 
-        double pdfWidth  = page.getMediaBox().getWidth();
+        double pdfWidth = page.getMediaBox().getWidth();
         double pdfHeight = page.getMediaBox().getHeight();
 
         double viewW = imageView.getBoundsInLocal().getWidth();
@@ -395,7 +613,7 @@ public class PdfEditorTool implements ToolModule {
     private double[] pdfToImageCoords(double xPdf, double yPdf) {
         PDPage page = pdfDocument.getPage(0);
 
-        double pdfWidth  = page.getMediaBox().getWidth();
+        double pdfWidth = page.getMediaBox().getWidth();
         double pdfHeight = page.getMediaBox().getHeight();
 
         double viewW = imageView.getBoundsInLocal().getWidth();
@@ -408,6 +626,7 @@ public class PdfEditorTool implements ToolModule {
 
         return new double[]{imgX, imgY};
     }
+
     private void save_pattern(Path selectedFile, String template_name) throws IOException {
         if (selectedFile == null) throw new IllegalArgumentException("selectedFile is null");
         if (template_name == null || template_name.isBlank()) throw new IllegalArgumentException("template_name is empty");
@@ -416,16 +635,10 @@ public class PdfEditorTool implements ToolModule {
         Path templateDir = Path.of("data", "pdfeditor", "templates", safeName);
         Files.createDirectories(templateDir);
 
-        String pdfName = selectedFile.getFileName().toString();
-        String ext = "";
-        int dot = pdfName.lastIndexOf('.');
-        if (dot >= 0) ext = pdfName.substring(dot).toLowerCase();
-        if (!ext.equals(".pdf")) ext = ".pdf";
-
-        Path targetPdf = templateDir.resolve("template" + ext);
+        Path targetPdf = templateDir.resolve("template.pdf");
         Files.copy(selectedFile, targetPdf, StandardCopyOption.REPLACE_EXISTING);
 
-        String json = buildTemplateJson(template_name, "template" + ext, balises);
+        String json = buildTemplateJson(template_name, "template.pdf", balises);
         Files.writeString(templateDir.resolve("template.json"), json, StandardCharsets.UTF_8);
     }
 
@@ -455,6 +668,158 @@ public class PdfEditorTool implements ToolModule {
         return sb.toString();
     }
 
+    private Node makeTextPreviewNode(PDDocument doc, BufferedImage img, ImageView iv, Balise b, String value) {
+        if (doc == null || img == null || iv == null) return null;
+
+        double[] xy = pdfToViewCoords(doc, iv, b.x, b.y);
+        double fontPx = Math.max(8, scalePdfHToView(iv, doc, b.height));
+
+        Label l = new Label(value);
+        l.setMouseTransparent(true);
+        l.setStyle("-fx-background-color: rgba(255,255,255,0.55); -fx-border-color: red; -fx-border-width: 1; -fx-padding: 2 4 2 4;");
+        l.setFont(javafx.scene.text.Font.font(fontPx));
+
+        l.setLayoutX(xy[0]);
+        l.setLayoutY(Math.max(0, xy[1] - fontPx));
+
+        return l;
+    }
+
+    private Node makeImagePreviewNode(PDDocument doc, BufferedImage img, ImageView iv, Balise b, Path imagePath) {
+        try {
+            Image fxImg = new Image(imagePath.toUri().toString());
+            if (fxImg.isError()) return null;
+
+            double[] xy = pdfToViewCoords(doc, iv, b.x, b.y);
+
+            double w = Math.max(1, scalePdfWToView(iv, doc, b.width));
+            double h = Math.max(1, scalePdfHToView(iv, doc, b.height));
+
+            ImageView v = new ImageView(fxImg);
+            v.setMouseTransparent(true);
+            v.setPreserveRatio(false);
+            v.setFitWidth(w);
+            v.setFitHeight(h);
+
+            v.setLayoutX(xy[0]);
+            v.setLayoutY(xy[1] - h);
+
+            v.setStyle("-fx-border-color: red; -fx-border-width: 1;");
+            return v;
+
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    private double[] pdfToViewCoords(PDDocument doc, ImageView iv, double xPdf, double yPdf) {
+        PDPage page = doc.getPage(0);
+
+        double pdfWidth = page.getMediaBox().getWidth();
+        double pdfHeight = page.getMediaBox().getHeight();
+
+        double viewW = iv.getBoundsInLocal().getWidth();
+        double viewH = iv.getBoundsInLocal().getHeight();
+
+        if (viewW <= 0 || viewH <= 0) return new double[]{0, 0};
+
+        double x = xPdf * viewW / pdfWidth;
+        double y = (pdfHeight - yPdf) * viewH / pdfHeight;
+
+        return new double[]{x, y};
+    }
+
+    private double scalePdfWToView(ImageView iv, PDDocument doc, double wPdf) {
+        PDPage page = doc.getPage(0);
+        double pdfW = page.getMediaBox().getWidth();
+        double viewW = iv.getBoundsInLocal().getWidth();
+        if (pdfW <= 0 || viewW <= 0) return wPdf;
+        return wPdf * viewW / pdfW;
+    }
+
+    private double scalePdfHToView(ImageView iv, PDDocument doc, double hPdf) {
+        PDPage page = doc.getPage(0);
+        double pdfH = page.getMediaBox().getHeight();
+        double viewH = iv.getBoundsInLocal().getHeight();
+        if (pdfH <= 0 || viewH <= 0) return hPdf;
+        return hPdf * viewH / pdfH;
+    }
+
+    private Path exportFilledTemplate(Template template, Map<Balise, TextField> textInputs, Map<Balise, Path> imageInputs) throws IOException {
+        Path resultsDir = Path.of("data", "pdfeditor", "results");
+        Files.createDirectories(resultsDir);
+
+        String stamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        Path out = resultsDir.resolve(template.name + "_" + stamp + ".pdf");
+
+        try (PDDocument doc = PDDocument.load(template.pdfPath.toFile())) {
+            PDPage page = doc.getPage(0);
+
+            try (PDPageContentStream cs = new PDPageContentStream(doc, page, AppendMode.APPEND, true, true)) {
+                for (Balise b : template.balises) {
+                    if ("TEXT".equalsIgnoreCase(b.type)) {
+                        TextField tf = textInputs.get(b);
+                        String v = tf == null ? "" : tf.getText();
+                        if (v != null && !v.isBlank()) {
+                            cs.beginText();
+                            cs.setFont(PDType1Font.HELVETICA, Math.max(6, b.height));
+                            cs.newLineAtOffset(b.x, b.y);
+                            cs.showText(safePdfText(v));
+                            cs.endText();
+                        }
+                    } else if ("IMAGE".equalsIgnoreCase(b.type)) {
+                        Path p = imageInputs.get(b);
+                        if (p != null && Files.exists(p)) {
+                            PDImageXObject img = PDImageXObject.createFromFileByContent(p.toFile(), doc);
+                            cs.drawImage(img, b.x, b.y, Math.max(1, b.width), Math.max(1, b.height));
+                        }
+                    }
+                }
+            }
+
+            doc.save(out.toFile());
+        }
+
+        return out;
+    }
+
+    private List<String> listTemplateNames() {
+        Path templatesDir = Path.of("data", "pdfeditor", "templates");
+        try {
+            Files.createDirectories(templatesDir);
+        } catch (IOException ignored) {}
+
+        try (var s = Files.list(templatesDir)) {
+            return s.filter(Files::isDirectory)
+                .map(p -> p.getFileName().toString())
+                .sorted()
+                .toList();
+        } catch (IOException e) {
+            return List.of();
+        }
+    }
+
+    private void openFolder(Path dir) {
+        try {
+            if (!Files.exists(dir)) return;
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().open(dir.toFile());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String safePdfText(String s) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c >= 32 && c <= 126) sb.append(c);
+            else sb.append('?');
+        }
+        return sb.toString();
+    }
+
     private String jsonEscape(String s) {
         String out = s;
         out = out.replace("\\", "\\\\");
@@ -475,7 +840,4 @@ public class PdfEditorTool implements ToolModule {
         if (out.isBlank()) out = "template";
         return out;
     }
-
-
 }
-

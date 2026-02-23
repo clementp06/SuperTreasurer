@@ -10,5 +10,11 @@
   "date": "2026-02-12",
   "description": "Cailloux",
   "amountCents": -5500
+},
+{
+  "id": "entry_9533057c-e2e8-445f-84f4-71b417cbb15f",
+  "date": "2026-02-23",
+  "description": "Christophe détourne les fonds",
+  "amountCents": -12000
 }
 ]

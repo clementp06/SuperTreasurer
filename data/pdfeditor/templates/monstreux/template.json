@@ -1,0 +1,22 @@
+{
+  "templateName": "monstreux",
+  "pdfFile": "template.pdf",
+  "balises": [
+    {
+      "type": "TEXT",
+      "name": "balise_test",
+      "x": 335,
+      "y": 659,
+      "width": 100,
+      "height": 20
+    },
+    {
+      "type": "TEXT",
+      "name": "balise_test",
+      "x": 336,
+      "y": 615,
+      "width": 100,
+      "height": 20
+    }
+  ]
+}

@@ -16,5 +16,17 @@
   "date": "2026-02-12",
   "description": "Courses",
   "amountCents": -55000
+},
+{
+  "id": "entry_81d110cf-692b-4e27-9b71-37fc4fa4fe2f",
+  "date": "2026-02-18",
+  "description": "Gabriel a tout mangé",
+  "amountCents": -3500
+},
+{
+  "id": "entry_46105b08-32be-4819-814e-f735fec9bcdc",
+  "date": "2026-02-18",
+  "description": "Gabriel a tout mangé",
+  "amountCents": -3500
 }
 ]
