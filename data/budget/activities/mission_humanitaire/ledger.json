@@ -1,0 +1,20 @@
+[
+{
+  "id": "9ecd7863-eb45-41bd-a9d3-fc86f174aad1",
+  "date": "2026-02-25",
+  "description": "Paiement MHJVD",
+  "amountCents": -921500
+},
+{
+  "id": "8325bd13-48ef-4f14-9310-ff8878b5b00a",
+  "date": "2026-02-25",
+  "description": "Versement dons",
+  "amountCents": 43000
+},
+{
+  "id": "8eecc00c-a83f-4d3a-9a69-106464af1049",
+  "date": "2026-02-25",
+  "description": "Versement dons",
+  "amountCents": 1000
+}
+]

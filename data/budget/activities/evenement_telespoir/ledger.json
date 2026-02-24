@@ -1,0 +1,110 @@
+[
+{
+  "id": "802ed509-45dd-41cf-b799-29996059de1b",
+  "date": "2026-02-25",
+  "description": "Note de frais (Jules)",
+  "amountCents": -5879
+},
+{
+  "id": "14f665b8-38ef-4ad7-aae6-e65406ba5eef",
+  "date": "2026-02-25",
+  "description": "Espèces vente de crêpes au pot",
+  "amountCents": 1900
+},
+{
+  "id": "f578b0cd-ba1d-48b2-899b-f82a43607422",
+  "date": "2026-02-25",
+  "description": "Transfert fonds vente de crêpes ",
+  "amountCents": 12031
+},
+{
+  "id": "11e16c34-44f3-46b6-bf56-0ba73ba6cc5e",
+  "date": "2026-02-25",
+  "description": "Transfert fonds vente de crêpes ",
+  "amountCents": 293
+},
+{
+  "id": "87dc0571-f88a-48ef-b582-f91a8ba4e80d",
+  "date": "2026-02-25",
+  "description": "Paiement goodies",
+  "amountCents": 4000
+},
+{
+  "id": "889a4e09-d0e9-466b-82b3-bd61fb933dcc",
+  "date": "2026-02-25",
+  "description": "Commande goodies (polaires)",
+  "amountCents": -47520
+},
+{
+  "id": "001bb5f3-7aad-4846-b0ee-e9a05137b2c6",
+  "date": "2026-02-25",
+  "description": "Versement paiements",
+  "amountCents": 28500
+},
+{
+  "id": "20f956af-d665-4349-8f67-3d17dd624b1e",
+  "date": "2026-02-25",
+  "description": "Don Forum pour achat lot",
+  "amountCents": 48999
+},
+{
+  "id": "a4a176ad-41b5-46b5-aa71-4cad49f5fbee",
+  "date": "2026-02-25",
+  "description": "Achat lot Ipad Forum",
+  "amountCents": -48999
+},
+{
+  "id": "b4eaebf6-0579-429f-a66d-a048ee4c6910",
+  "date": "2026-02-25",
+  "description": "Billeterie Bingo",
+  "amountCents": 100151
+},
+{
+  "id": "1de2cc7d-7290-49b3-b064-3fb262e6b4d6",
+  "date": "2026-02-25",
+  "description": "Comission kebabs KFT",
+  "amountCents": -27500
+},
+{
+  "id": "ef25ee28-8613-4861-bce5-70708445b0e3",
+  "date": "2026-02-25",
+  "description": "Versement paiements",
+  "amountCents": 31000
+},
+{
+  "id": "8f3ae294-e4cf-4fb3-b4fc-ffb4a01d678e",
+  "date": "2026-02-25",
+  "description": "Note de frais (Adam)",
+  "amountCents": -24367
+},
+{
+  "id": "6db41541-0221-4792-9945-86a23e666c12",
+  "date": "2026-02-25",
+  "description": "Note de frais (Héloïse)",
+  "amountCents": -1998
+},
+{
+  "id": "93195917-46ed-4c8f-b130-e327bd48a53d",
+  "date": "2026-02-25",
+  "description": "APP BDE Pot",
+  "amountCents": 100000
+},
+{
+  "id": "397c1040-0b29-4377-b18c-6c6b0998b68d",
+  "date": "2026-02-25",
+  "description": "Billeterie BDE Pot",
+  "amountCents": 131300
+},
+{
+  "id": "d0fb802a-99bd-4214-a2ac-4e695f7c9df1",
+  "date": "2026-02-25",
+  "description": "Vigiles + alcool Pot",
+  "amountCents": -87564
+},
+{
+  "id": "0586240d-126a-4050-8cf1-98f555ee737a",
+  "date": "2026-02-25",
+  "description": "Encaissement entrée ",
+  "amountCents": 1662
+}
+]

@@ -14,7 +14,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Comparator;
 import java.io.File;
-import java.io.OutputStream;
 
 import javafx.geometry.Insets;
 import javafx.scene.control.Accordion;
@@ -47,11 +46,9 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.CreationHelper;
-import org.apache.poi.ss.usermodel.DataFormat;
-import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.ss.usermodel.CellType;
+import java.text.Normalizer;
 
 import supertreasurer.tools.ToolModule;
 
@@ -158,6 +155,24 @@ public class BudgetTool implements ToolModule {
             }
         });
 
+        Button ImportExcelBtn = new Button("Import from Excel");
+        ImportExcelBtn.setOnAction(e -> {
+            Window w = ImportExcelBtn.getScene().getWindow();
+            FileChooser fc = new FileChooser();
+            fc.setTitle("Select Excel file to import");
+            java.io.File f = fc.showOpenDialog(w);
+            if (f != null) {
+                try {
+                    importFromExcel(f.toPath(), toolDataDir);
+                    entryStatus.setText("Import successful: " + f.getAbsolutePath());
+                    entryActivityIdField.getItems().clear();
+                    entryActivityIdField.getItems().addAll(listActivityIds( toolDataDir.resolve("activities")));
+                } catch (Exception ex) {
+                    entryStatus.setText("Import error: " + ex.getMessage());
+                }
+            }
+        });
+
         VBox root = new VBox(
             10,
             title,
@@ -175,7 +190,9 @@ public class BudgetTool implements ToolModule {
             descriptionArea,
             new HBox(10, attachBtn, attachedPathLabel),
             addEntryBtn,
-            entryStatus
+            entryStatus,
+            new Separator(),
+            ImportExcelBtn
         );
 
         root.setPadding(new Insets(12));
@@ -707,10 +724,12 @@ public class BudgetTool implements ToolModule {
     private String nullToEmpty(String s) {
         return s == null ? "" : s;
     }
-
     private String safeFileStem(String s) {
         if (s == null || s.isBlank()) return "activity";
-        String out = s.toLowerCase();
+
+        String out = Normalizer.normalize(s, Normalizer.Form.NFD);
+        out = out.replaceAll("\\p{M}", "");
+        out = out.toLowerCase();
         out = out.replaceAll("[^a-z0-9\\-_.]+", "_");
         return out;
     }
@@ -950,19 +969,103 @@ public class BudgetTool implements ToolModule {
         if (exit2 != 0) throw new RuntimeException("LaTeX compilation failed (pass 2)");
     }
     private class Line {
-        String date;
         String description;
         long amountCents;
         String activity_name;
         Boolean in_bilan;
     
-        public Line(String date, String description, long amountCents, String activity_name, Boolean in_bilan) {
-            this.date = date;
+        public Line(String description, long amountCents, String activity_name, Boolean in_bilan) {
             this.description = description;
             this.amountCents = amountCents;
             this.activity_name = activity_name;
             this.in_bilan = in_bilan;
         }
     }
-    
+    private ArrayList<Line> extracted_content;
+    private Sheet Open_compte_sheet (Path file) throws IOException {
+        try {
+        Workbook workbook = new XSSFWorkbook(Files.newInputStream(file));
+        for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+            Sheet sheet = workbook.getSheetAt(i);
+            if (sheet.getSheetName().equalsIgnoreCase("Transactions")) {
+                return sheet;
+            }
+        }
+        throw new IOException("No sheet named 'Transactions' found in the Excel file.");
+        } catch (Exception e) {
+            throw new IOException("Failed to read Excel file: " + e.getMessage(), e);
+        }
+    }
+    private void closeWorkbook (Sheet sheet) throws IOException {
+        try {
+            Workbook workbook = sheet.getWorkbook();
+            workbook.close();
+        } catch (Exception e) {
+            throw new IOException("Failed to close Excel workbook: " + e.getMessage(), e);
+        }
+    }
+    private void extractContentFromSheet(Sheet sheet) {
+        extracted_content = new ArrayList<>();
+        for (Row row : sheet) {
+            if (row.getRowNum() < 3) continue; // skip header
+            Cell descCell = row.getCell(3);
+            Cell amountCell = row.getCell(7) ;
+            Cell activityCell = row.getCell(4);
+            Cell bilanCell = row.getCell(15);
+
+            String description = descCell != null ? descCell.getStringCellValue() : "";
+            long amountCents = 0;
+            if (amountCell != null) {
+                if (amountCell.getCellType() == CellType.NUMERIC) {
+                    amountCents = Math.round(amountCell.getNumericCellValue() * 100);
+                } else if (amountCell.getCellType() == CellType.STRING) {
+                    try {
+                        double val = Double.parseDouble(amountCell.getStringCellValue());
+                        amountCents = Math.round(val * 100);
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
+            String activityName = activityCell != null ? activityCell.getStringCellValue() : "";
+            //Tu dois lire la case bilanCell qui est une case à cocher et le transformer en bool
+            boolean inBilan = bilanCell != null && bilanCell.getCellType() == CellType.BOOLEAN && bilanCell.getBooleanCellValue();
+            extracted_content.add(new Line(description, amountCents, activityName, inBilan));
+        }
+    }
+    private void Clear_current_budget_data (Path activitiesDir) throws IOException {
+        if (!Files.exists(activitiesDir)) return;
+        try (var stream = Files.list(activitiesDir)) {
+            stream.filter(Files::isDirectory).forEach(activityDir -> {
+                try {
+                    // Supprimer les fichiers dans le dossier de l'activité
+                    Files.walk(activityDir)
+                        .sorted(Comparator.reverseOrder())
+                        .map(Path::toFile)
+                        .forEach(File::delete);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    private void Include_line_in_budget (Path activitiesDir, Line line) throws IOException {
+        String activityId = safeFileStem(line.activity_name);
+        Path activityDir = ensureActivity(activitiesDir, activityId, activityId);
+        Path ledgerFile = activityDir.resolve("ledger.json");
+        String entryId = UUID.randomUUID().toString();
+        appendLedgerEntry(ledgerFile, entryId, LocalDate.now(), line.description, line.amountCents, new Path[0], activityDir);
+    }
+    private void importFromExcel(Path file, Path activitiesDir) throws IOException {
+        Sheet sheet = Open_compte_sheet(file);
+        extractContentFromSheet(sheet);
+        Clear_current_budget_data(activitiesDir);
+        for (Line line : extracted_content) {
+            if (line.in_bilan) {
+                Include_line_in_budget(activitiesDir, line);
+            }
+        }
+        closeWorkbook(sheet);
+        extracted_content.clear();
+    }
 }

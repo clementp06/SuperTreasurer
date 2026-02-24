@@ -1,0 +1,285 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage[a4paper,margin=2.2cm]{geometry}
+
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage[table]{xcolor}
+\usepackage{graphicx}
+\usepackage{hyperref}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  urlcolor=blue
+}
+
+\definecolor{softgray}{RGB}{245,245,245}
+
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+
+\newcommand{\EUR}[1]{#1~\texteuro}
+
+\title{\textbf{Budget daté du 25/02/2026}}
+\author{Telecom Espoir}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Résumé}
+\begin{itemize}
+  \item Total entrées : \EUR{15523.01}
+  \item Total sorties : \EUR{14704.96}
+  \item Bilan net : \EUR{818.05}
+\end{itemize}
+
+\bigskip
+
+\section*{Synthèse globale par activité}
+\rowcolors{2}{softgray}{white}
+\begin{tabular}{L{6.2cm} R{3.2cm} R{3.2cm} R{3.2cm}}
+\toprule
+\textbf{Activité} & \textbf{Entrées} & \textbf{Sorties} & \textbf{Bilan} \\
+\midrule
+autre & \EUR{0.00} & \EUR{9.35} & \EUR{-9.35} \\
+epicerie\_solidaire & \EUR{8418.00} & \EUR{2511.08} & \EUR{5906.92} \\
+evenement\_telecom & \EUR{836.65} & \EUR{179.95} & \EUR{656.70} \\
+evenement\_telespoir & \EUR{4598.36} & \EUR{2438.27} & \EUR{2160.09} \\
+maraude & \EUR{1230.00} & \EUR{351.31} & \EUR{878.69} \\
+mission\_humanitaire & \EUR{440.00} & \EUR{9215.00} & \EUR{-8775.00} \\
+
+\bottomrule
+\end{tabular}
+\rowcolors{2}{}{}
+
+\bigskip
+
+\begin{center}
+\includegraphics[width=0.46\textwidth]{charts/global_income_by_activity.pdf}
+\hfill
+\includegraphics[width=0.46\textwidth]{charts/global_expense_by_activity.pdf}
+\end{center}
+
+\newpage
+
+\section*{autre}
+
+\subsection*{Tableau des écritures}
+\rowcolors{2}{softgray}{white}
+\begin{longtable}{L{2.7cm} L{8.2cm} R{3.0cm}}
+\toprule
+\textbf{Date} & \textbf{Description} & \textbf{Montant} \\
+\midrule
+2026-02-25 & Note de frais (Nicodème) & \EUR{-9.35} \\
+
+\bottomrule
+\end{longtable}
+\rowcolors{2}{}{}
+
+\subsection*{Répartition}
+\begin{center}
+\includegraphics[width=0.46\textwidth]{charts/autre_income.pdf}
+\hfill
+\includegraphics[width=0.46\textwidth]{charts/autre_expense.pdf}
+\end{center}
+
+\bigskip
+\textbf{Bilan activité :} \EUR{-9.35}
+
+\newpage
+\section*{epicerie\_solidaire}
+
+\subsection*{Tableau des écritures}
+\rowcolors{2}{softgray}{white}
+\begin{longtable}{L{2.7cm} L{8.2cm} R{3.0cm}}
+\toprule
+\textbf{Date} & \textbf{Description} & \textbf{Montant} \\
+\midrule
+2026-02-25 & Note de frais (Naoures) & \EUR{-224.30} \\
+2026-02-25 & Note de frais (Sarah) & \EUR{-269.99} \\
+2026-02-25 & Paiement bénéficiaires  & \EUR{38.00} \\
+2026-02-25 & Note de frais (Naoures) & \EUR{-281.07} \\
+2026-02-25 & Paiement bénéficaires & \EUR{30.00} \\
+2026-02-25 & Paiement bénéficiaires  & \EUR{51.00} \\
+2026-02-25 & Note de frais (Naoures) & \EUR{-194.38} \\
+2026-02-25 & Paiement bénéficiaires & \EUR{18.00} \\
+2026-02-25 & Paiement bénéficiaires & \EUR{9.00} \\
+2026-02-25 & Note de frais (Naoures) & \EUR{-223.11} \\
+2026-02-25 & Paiement bénéficiaires & \EUR{24.00} \\
+2026-02-25 & Note de frais (Naoures) & \EUR{-187.65} \\
+2026-02-25 & Paiement bénéficiaires  & \EUR{18.00} \\
+2026-02-25 & Courses épicerie solidaire & \EUR{-181.59} \\
+2026-02-25 & Courses épicerie solidaire & \EUR{-282.33} \\
+2026-02-25 & Subvention Alumni ES & \EUR{3700.00} \\
+2026-02-25 & Courses épicerie solidaire & \EUR{-201.79} \\
+2026-02-25 & APP Forum ES & \EUR{3000.00} \\
+2026-02-25 & APP IPP ES & \EUR{1500.00} \\
+2026-02-25 & Paiement bénéficiaires & \EUR{12.00} \\
+2026-02-25 & Note de frais (Naoures) & \EUR{-243.66} \\
+2026-02-25 & Note de frais (Naoures) & \EUR{-221.21} \\
+2026-02-25 & Paiement bénéficiares & \EUR{18.00} \\
+
+\bottomrule
+\end{longtable}
+\rowcolors{2}{}{}
+
+\subsection*{Répartition}
+\begin{center}
+\includegraphics[width=0.46\textwidth]{charts/epicerie_solidaire_income.pdf}
+\hfill
+\includegraphics[width=0.46\textwidth]{charts/epicerie_solidaire_expense.pdf}
+\end{center}
+
+\bigskip
+\textbf{Bilan activité :} \EUR{5906.92}
+
+\newpage
+\section*{evenement\_telecom}
+
+\subsection*{Tableau des écritures}
+\rowcolors{2}{softgray}{white}
+\begin{longtable}{L{2.7cm} L{8.2cm} R{3.0cm}}
+\toprule
+\textbf{Date} & \textbf{Description} & \textbf{Montant} \\
+\midrule
+2026-02-25 & Avance courses Ekiden & \EUR{350.00} \\
+2026-02-25 & Courses Ekiden & \EUR{-179.95} \\
+2026-02-25 & Prestation Ekiden & \EUR{350.00} \\
+2026-02-25 & Encaissement vente fripe & \EUR{41.05} \\
+2026-02-25 & Encaissement vente fripe & \EUR{13.00} \\
+2026-02-25 & Encaissement vente fripe & \EUR{44.00} \\
+2026-02-25 & Encaissement Lydia & \EUR{38.60} \\
+
+\bottomrule
+\end{longtable}
+\rowcolors{2}{}{}
+
+\subsection*{Répartition}
+\begin{center}
+\includegraphics[width=0.46\textwidth]{charts/evenement_telecom_income.pdf}
+\hfill
+\includegraphics[width=0.46\textwidth]{charts/evenement_telecom_expense.pdf}
+\end{center}
+
+\bigskip
+\textbf{Bilan activité :} \EUR{656.70}
+
+\newpage
+\section*{evenement\_telespoir}
+
+\subsection*{Tableau des écritures}
+\rowcolors{2}{softgray}{white}
+\begin{longtable}{L{2.7cm} L{8.2cm} R{3.0cm}}
+\toprule
+\textbf{Date} & \textbf{Description} & \textbf{Montant} \\
+\midrule
+2026-02-25 & Note de frais (Jules) & \EUR{-58.79} \\
+2026-02-25 & Espèces vente de crêpes au pot & \EUR{19.00} \\
+2026-02-25 & Transfert fonds vente de crêpes  & \EUR{120.31} \\
+2026-02-25 & Transfert fonds vente de crêpes  & \EUR{2.93} \\
+2026-02-25 & Paiement goodies & \EUR{40.00} \\
+2026-02-25 & Commande goodies (polaires) & \EUR{-475.20} \\
+2026-02-25 & Versement paiements & \EUR{285.00} \\
+2026-02-25 & Don Forum pour achat lot & \EUR{489.99} \\
+2026-02-25 & Achat lot Ipad Forum & \EUR{-489.99} \\
+2026-02-25 & Billeterie Bingo & \EUR{1001.51} \\
+2026-02-25 & Comission kebabs KFT & \EUR{-275.00} \\
+2026-02-25 & Versement paiements & \EUR{310.00} \\
+2026-02-25 & Note de frais (Adam) & \EUR{-243.67} \\
+2026-02-25 & Note de frais (Héloïse) & \EUR{-19.98} \\
+2026-02-25 & APP BDE Pot & \EUR{1000.00} \\
+2026-02-25 & Billeterie BDE Pot & \EUR{1313.00} \\
+2026-02-25 & Vigiles + alcool Pot & \EUR{-875.64} \\
+2026-02-25 & Encaissement entrée  & \EUR{16.62} \\
+
+\bottomrule
+\end{longtable}
+\rowcolors{2}{}{}
+
+\subsection*{Répartition}
+\begin{center}
+\includegraphics[width=0.46\textwidth]{charts/evenement_telespoir_income.pdf}
+\hfill
+\includegraphics[width=0.46\textwidth]{charts/evenement_telespoir_expense.pdf}
+\end{center}
+
+\bigskip
+\textbf{Bilan activité :} \EUR{2160.09}
+
+\newpage
+\section*{maraude}
+
+\subsection*{Tableau des écritures}
+\rowcolors{2}{softgray}{white}
+\begin{longtable}{L{2.7cm} L{8.2cm} R{3.0cm}}
+\toprule
+\textbf{Date} & \textbf{Description} & \textbf{Montant} \\
+\midrule
+2026-02-25 & Course maraude & \EUR{-67.08} \\
+2026-02-25 & Courses maraude & \EUR{0.00} \\
+2026-02-25 & Note de frais (Charlotte) & \EUR{-16.82} \\
+2026-02-25 & Versement dons & \EUR{10.00} \\
+2026-02-25 & Note de frais (Jules) & \EUR{-174.01} \\
+2026-02-25 & Note de frais (Jules) & \EUR{-93.40} \\
+2026-02-25 & Versement dons & \EUR{10.00} \\
+2026-02-25 & APP IPP Maraudes inter-écoles & \EUR{1000.00} \\
+2026-02-25 & Versement dons & \EUR{210.00} \\
+
+\bottomrule
+\end{longtable}
+\rowcolors{2}{}{}
+
+\subsection*{Répartition}
+\begin{center}
+\includegraphics[width=0.46\textwidth]{charts/maraude_income.pdf}
+\hfill
+\includegraphics[width=0.46\textwidth]{charts/maraude_expense.pdf}
+\end{center}
+
+\bigskip
+\textbf{Bilan activité :} \EUR{878.69}
+
+\newpage
+\section*{mission\_humanitaire}
+
+\subsection*{Tableau des écritures}
+\rowcolors{2}{softgray}{white}
+\begin{longtable}{L{2.7cm} L{8.2cm} R{3.0cm}}
+\toprule
+\textbf{Date} & \textbf{Description} & \textbf{Montant} \\
+\midrule
+2026-02-25 & Paiement MHJVD & \EUR{-9215.00} \\
+2026-02-25 & Versement dons & \EUR{430.00} \\
+2026-02-25 & Versement dons & \EUR{10.00} \\
+
+\bottomrule
+\end{longtable}
+\rowcolors{2}{}{}
+
+\subsection*{Répartition}
+\begin{center}
+\includegraphics[width=0.46\textwidth]{charts/mission_humanitaire_income.pdf}
+\hfill
+\includegraphics[width=0.46\textwidth]{charts/mission_humanitaire_expense.pdf}
+\end{center}
+
+\bigskip
+\textbf{Bilan activité :} \EUR{-8775.00}
+
+\newpage
+
+
+\section*{Bilan final}
+\begin{itemize}
+  \item Total entrées : \EUR{15523.01}
+  \item Total sorties : \EUR{14704.96}
+  \item \textbf{Bilan net : \EUR{818.05}}
+\end{itemize}
+
+\end{document}

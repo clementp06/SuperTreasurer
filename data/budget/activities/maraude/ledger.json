@@ -1,0 +1,56 @@
+[
+{
+  "id": "6a4f42f6-3850-49c2-9b2b-802f28c4c001",
+  "date": "2026-02-25",
+  "description": "Course maraude",
+  "amountCents": -6708
+},
+{
+  "id": "855d3e15-51b9-43da-ad1e-254a8a133a7d",
+  "date": "2026-02-25",
+  "description": "Courses maraude",
+  "amountCents": 0
+},
+{
+  "id": "f4851aa8-a433-480f-aed7-4d6fea25ada1",
+  "date": "2026-02-25",
+  "description": "Note de frais (Charlotte)",
+  "amountCents": -1682
+},
+{
+  "id": "b12cd7ac-e63c-4ddc-8524-7a1c40eb219b",
+  "date": "2026-02-25",
+  "description": "Versement dons",
+  "amountCents": 1000
+},
+{
+  "id": "fc6cf8c4-cfc8-4e6c-a46e-00e96b1c5d8e",
+  "date": "2026-02-25",
+  "description": "Note de frais (Jules)",
+  "amountCents": -17401
+},
+{
+  "id": "01ba19b5-262e-4f5a-8fcc-f3b1a67db4f1",
+  "date": "2026-02-25",
+  "description": "Note de frais (Jules)",
+  "amountCents": -9340
+},
+{
+  "id": "2916077d-0dc6-4940-992a-d6060e90f341",
+  "date": "2026-02-25",
+  "description": "Versement dons",
+  "amountCents": 1000
+},
+{
+  "id": "02ebcb11-542c-4e32-a72e-f671e67abd7f",
+  "date": "2026-02-25",
+  "description": "APP IPP Maraudes inter-écoles",
+  "amountCents": 100000
+},
+{
+  "id": "3a9b46f7-8af7-4ba0-a57a-aa08a9ab8ff7",
+  "date": "2026-02-25",
+  "description": "Versement dons",
+  "amountCents": 21000
+}
+]

@@ -1,0 +1,44 @@
+[
+{
+  "id": "3fff72fa-e071-421a-9ffb-0f88e1bb836e",
+  "date": "2026-02-25",
+  "description": "Avance courses Ekiden",
+  "amountCents": 35000
+},
+{
+  "id": "a7ee2b25-1308-4c16-9f97-ce3a2d3610de",
+  "date": "2026-02-25",
+  "description": "Courses Ekiden",
+  "amountCents": -17995
+},
+{
+  "id": "9222be3d-90a4-49cc-822f-bf8a12d5677c",
+  "date": "2026-02-25",
+  "description": "Prestation Ekiden",
+  "amountCents": 35000
+},
+{
+  "id": "4e5dded7-93df-42b0-9637-2322c746a739",
+  "date": "2026-02-25",
+  "description": "Encaissement vente fripe",
+  "amountCents": 4105
+},
+{
+  "id": "ee515103-d9ff-49dc-8d2e-ba54974106a9",
+  "date": "2026-02-25",
+  "description": "Encaissement vente fripe",
+  "amountCents": 1300
+},
+{
+  "id": "06f6bc97-7902-4210-8ce0-c75380d5f2ac",
+  "date": "2026-02-25",
+  "description": "Encaissement vente fripe",
+  "amountCents": 4400
+},
+{
+  "id": "f98674d3-f755-428d-aaa9-cfe426eded7d",
+  "date": "2026-02-25",
+  "description": "Encaissement Lydia",
+  "amountCents": 3860
+}
+]
