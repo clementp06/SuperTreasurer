@@ -305,6 +305,17 @@ public class PdfEditorTool implements ToolModule {
             }
         });
 
+        Button open_templates_folder_btn= new Button("Open templates folder");
+        open_templates_folder_btn.setOnAction(e -> {
+            try {
+                Path templates = Path.of("data", "pdfeditor", "templates");
+                Files.createDirectories(templates);
+                openFolder(templates);
+            } catch (IOException ex) {
+                // ignore
+            }
+        });
+
         editor_box.getChildren().clear();
         editor_box.setPadding(new Insets(10));
         editor_box.setSpacing(8);
@@ -313,7 +324,7 @@ public class PdfEditorTool implements ToolModule {
         editor_box.getChildren().add(attachedPathLabel);
         editor_box.getChildren().add(pattern_name_field);
         editor_box.getChildren().add(save_pattern_btn);
-
+        editor_box.getChildren().add(open_templates_folder_btn);
         ScrollPane editor_scroll = new ScrollPane(editor_box);
         editor_scroll.setFitToWidth(true);
 
@@ -671,8 +682,10 @@ public class PdfEditorTool implements ToolModule {
     private Node makeTextPreviewNode(PDDocument doc, BufferedImage img, ImageView iv, Balise b, String value) {
         if (doc == null || img == null || iv == null) return null;
 
-        double[] xy = pdfToViewCoords(doc, iv, b.x, b.y);
-        double fontPx = Math.max(8, scalePdfHToView(iv, doc, b.height));
+        float label_offset = 2;
+
+        double[] xy = pdfToViewCoords(doc, iv, b.x - label_offset, b.y+b.height/2);
+        double fontPx = Math.max(0.1, scalePdfHToView(iv, doc, b.height));
 
         Label l = new Label(value);
         l.setMouseTransparent(true);
@@ -680,7 +693,7 @@ public class PdfEditorTool implements ToolModule {
         l.setFont(javafx.scene.text.Font.font(fontPx));
 
         l.setLayoutX(xy[0]);
-        l.setLayoutY(Math.max(0, xy[1] - fontPx));
+        l.setLayoutY(Math.max(0, xy[1]));
 
         return l;
     }
@@ -690,7 +703,7 @@ public class PdfEditorTool implements ToolModule {
             Image fxImg = new Image(imagePath.toUri().toString());
             if (fxImg.isError()) return null;
 
-            double[] xy = pdfToViewCoords(doc, iv, b.x, b.y);
+            double[] xy = pdfToViewCoords(doc, iv, b.x, b.y-b.height);
 
             double w = Math.max(1, scalePdfWToView(iv, doc, b.width));
             double h = Math.max(1, scalePdfHToView(iv, doc, b.height));
@@ -762,8 +775,8 @@ public class PdfEditorTool implements ToolModule {
                         String v = tf == null ? "" : tf.getText();
                         if (v != null && !v.isBlank()) {
                             cs.beginText();
-                            cs.setFont(PDType1Font.HELVETICA, Math.max(6, b.height));
-                            cs.newLineAtOffset(b.x, b.y);
+                            cs.setFont(PDType1Font.HELVETICA, Math.max(1, b.height));
+                            cs.newLineAtOffset(b.x, b.y-b.height);
                             cs.showText(safePdfText(v));
                             cs.endText();
                         }
@@ -771,7 +784,8 @@ public class PdfEditorTool implements ToolModule {
                         Path p = imageInputs.get(b);
                         if (p != null && Files.exists(p)) {
                             PDImageXObject img = PDImageXObject.createFromFileByContent(p.toFile(), doc);
-                            cs.drawImage(img, b.x, b.y, Math.max(1, b.width), Math.max(1, b.height));
+                            float y = b.y - Math.max(1, b.height);
+                            cs.drawImage(img, b.x, y, Math.max(1, b.width), Math.max(1, b.height));
                         }
                     }
                 }

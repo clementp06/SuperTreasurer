@@ -1,0 +1,22 @@
+{
+  "templateName": "TestKiTu",
+  "pdfFile": "template.pdf",
+  "balises": [
+    {
+      "type": "TEXT",
+      "name": "cote_droit_batterie",
+      "x": 466,
+      "y": 816,
+      "width": 100,
+      "height": 20
+    },
+    {
+      "type": "IMAGE",
+      "name": "bas_droite_cle_2",
+      "x": 472,
+      "y": 557,
+      "width": 100,
+      "height": 100
+    }
+  ]
+}
