@@ -1,0 +1,102 @@
+{
+  "templateName": "Note_de_frais",
+  "pdfFile": "template.pdf",
+  "balises": [
+    {
+      "type": "TEXT",
+      "name": "numero_note_frais",
+      "x": 73,
+      "y": 490,
+      "width": 30,
+      "height": 20
+    },
+    {
+      "type": "TEXT",
+      "name": "description",
+      "x": 105,
+      "y": 492,
+      "width": 200,
+      "height": 20
+    },
+    {
+      "type": "TEXT",
+      "name": "ref_facture",
+      "x": 344,
+      "y": 489,
+      "width": 100,
+      "height": 20
+    },
+    {
+      "type": "TEXT",
+      "name": "Montant_haut",
+      "x": 449,
+      "y": 491,
+      "width": 80,
+      "height": 20
+    },
+    {
+      "type": "TEXT",
+      "name": "montant_bas",
+      "x": 452,
+      "y": 461,
+      "width": 80,
+      "height": 20
+    },
+    {
+      "type": "TEXT",
+      "name": "prenom",
+      "x": 214,
+      "y": 606,
+      "width": 100,
+      "height": 15
+    },
+    {
+      "type": "TEXT",
+      "name": "nom",
+      "x": 199,
+      "y": 621,
+      "width": 100,
+      "height": 15
+    },
+    {
+      "type": "TEXT",
+      "name": "date",
+      "x": 168,
+      "y": 587,
+      "width": 100,
+      "height": 15
+    },
+    {
+      "type": "TEXT",
+      "name": "motif",
+      "x": 172,
+      "y": 571,
+      "width": 100,
+      "height": 15
+    },
+    {
+      "type": "TEXT",
+      "name": "numero_note_haut",
+      "x": 351,
+      "y": 662,
+      "width": 100,
+      "height": 20
+    },
+    {
+      "type": "IMAGE",
+      "name": "signature_trez",
+      "x": 72,
+      "y": 237,
+      "width": 100,
+      "height": 100
+    },
+    {
+      "type": "IMAGE",
+      "name": "signature_benef",
+      "x": 291,
+      "y": 242,
+      "width": 100,
+      "height": 100
+    }
+  ]
+}

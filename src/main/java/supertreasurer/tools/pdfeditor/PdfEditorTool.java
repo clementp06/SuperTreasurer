@@ -776,7 +776,7 @@ public class PdfEditorTool implements ToolModule {
                         if (v != null && !v.isBlank()) {
                             cs.beginText();
                             cs.setFont(PDType1Font.HELVETICA, Math.max(1, b.height));
-                            cs.newLineAtOffset(b.x, b.y-b.height);
+                            cs.newLineAtOffset(b.x, b.y-(3*b.height/4));
                             cs.showText(safePdfText(v));
                             cs.endText();
                         }
