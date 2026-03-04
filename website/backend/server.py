@@ -9,22 +9,33 @@ import time
 import uuid
 from pathlib import Path
 from typing import Optional, Tuple
+from flask_cors import CORS
+import bcrypt
 
 from flask import Flask, abort, jsonify, request, send_file
+import os
+
+
+
+
 
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": ["http://127.0.0.1:8000", "http://localhost:8000"]}})
 
 # ----------------------------
 # Configuration (simple + explicite)
 # ----------------------------
 LOCAL=True
-BASE_DIR = Path(os.environ.get("NDF_DATA_DIR", "data"))
+# Dossier où se trouve ce fichier server.py
+SCRIPT_DIR = Path(__file__).resolve().parent
+# Tous les chemins deviennent relatifs à server.py
+BASE_DIR = SCRIPT_DIR / "data"
 EXPENSES_DIR = BASE_DIR / "expenses"
 TRASH_DIR = BASE_DIR / "trash"
 TMP_DIR = BASE_DIR / "tmp"
 
-MEMBER_API_KEY = os.environ.get("MEMBER_API_KEY", "change-me-member")
-TREASURER_API_KEY = os.environ.get("TREASURER_API_KEY", "change-me-treasurer")
+MEMBER_PASSWORD_HASH = os.environ.get("MEMBER_PASSWORD_HASH", "$2b$12$OqIVek8ubCzrTlepovIFnOGqJ/m0xdF0yoDt6fdb2sTcFgZ8//O02")
+TREASURER_PASSWORD_HASH = os.environ.get("TREASURER_PASSWORD_HASH", "$2b$12$tjKBKo/AEVmDMtPWkslDdelMJiZmlahPmPfI8NfAwn3P.LKXUaEne")
 
 # Limit upload size (protects you from accidental huge files / basic DoS)
 # Example: 20 MB
@@ -59,6 +70,7 @@ REQUIRED_TEXT_FIELDS = [
 # Helpers (filesystem + auth)
 # ----------------------------
 def ensure_dirs() -> None:
+    BASE_DIR.mkdir(parents=True, exist_ok=True)
     EXPENSES_DIR.mkdir(parents=True, exist_ok=True)
     TRASH_DIR.mkdir(parents=True, exist_ok=True)
     TMP_DIR.mkdir(parents=True, exist_ok=True)
@@ -69,10 +81,17 @@ def now_ts() -> str:
     return time.strftime("%Y%m%d%H%M%S", time.localtime())
 
 
-def require_api_key(expected: str) -> None:
-    # We keep auth intentionally minimal: one header, two separate keys (member vs treasurer)
-    key = request.headers.get("X-Api-Key")
-    if not key or key != expected:
+def require_password_hash(expected_hash: str) -> None:
+    provided = request.headers.get("X-Api-Key", "")
+
+    if not expected_hash:
+        abort(500, description="Server misconfigured: password hash is missing")
+
+    if not provided:
+        abort(401, description="Unauthorized")
+
+    ok = bcrypt.checkpw(provided.encode("utf-8"), expected_hash.encode("utf-8"))
+    if not ok:
         abort(401, description="Unauthorized")
 
 
@@ -171,7 +190,7 @@ def member_create_expense_json_only():
       data/expenses/<id>/meta.json (optional)
     Files are uploaded in step 2.
     """
-    require_api_key(MEMBER_API_KEY)
+    require_password_hash(MEMBER_PASSWORD_HASH)
 
     if not request.is_json:
         abort(415, description="Content-Type must be application/json")
@@ -211,7 +230,7 @@ def member_upload_files(expense_id: str):
       data/expenses/<id>/signature.<ext>
       data/expenses/<id>/invoice.<ext>
     """
-    require_api_key(MEMBER_API_KEY)
+    require_password_hash(MEMBER_PASSWORD_HASH)
 
     folder = EXPENSES_DIR / expense_id
     if not folder.exists() or not folder.is_dir():
@@ -274,7 +293,7 @@ def treasurer_list_expenses():
     Returns: list of { id, text } only (no files).
     This is what your software uses to decide which expenses to approve.
     """
-    require_api_key(TREASURER_API_KEY)
+    require_password_hash(TREASURER_PASSWORD_HASH)
 
     out = []
     for p in EXPENSES_DIR.iterdir():
@@ -303,7 +322,7 @@ def treasurer_get_expense(expense_id: str):
 
     This keeps the response lightweight while still telling the client where to GET the binaries.
     """
-    require_api_key(TREASURER_API_KEY)
+    require_password_hash(TREASURER_PASSWORD_HASH)
 
     folder = EXPENSES_DIR / expense_id
     if not folder.exists() or not folder.is_dir():
@@ -333,7 +352,7 @@ def treasurer_get_expense(expense_id: str):
 
 @app.get("/treasurer/expenses/<expense_id>/signature")
 def treasurer_download_signature(expense_id: str):
-    require_api_key(TREASURER_API_KEY)
+    require_password_hash(TREASURER_PASSWORD_HASH)
 
     folder = EXPENSES_DIR / expense_id
     if not folder.exists() or not folder.is_dir():
@@ -348,7 +367,7 @@ def treasurer_download_signature(expense_id: str):
 
 @app.get("/treasurer/expenses/<expense_id>/invoice")
 def treasurer_download_invoice(expense_id: str):
-    require_api_key(TREASURER_API_KEY)
+    require_password_hash(TREASURER_PASSWORD_HASH)
 
     folder = EXPENSES_DIR / expense_id
     if not folder.exists() or not folder.is_dir():
@@ -374,7 +393,7 @@ def treasurer_delete_expense(expense_id: str):
       - if trash contains an older entry for same <id>, we delete it (overwrite behavior)
       - keep only the last 5 deleted folders (FIFO by timestamp)
     """
-    require_api_key(TREASURER_API_KEY)
+    require_password_hash(TREASURER_PASSWORD_HASH)
 
     src = EXPENSES_DIR / expense_id
     if not src.exists() or not src.is_dir():
@@ -397,7 +416,7 @@ def treasurer_restore_trash():
     Refusal rule (as requested):
       - if expenses/<id> already exists, we do NOT restore that item (leave it in trash).
     """
-    require_api_key(TREASURER_API_KEY)
+    require_password_hash(TREASURER_PASSWORD_HASH)
 
     restored = []
     conflicts = []
@@ -440,6 +459,8 @@ def handle_error(e):
 # Local HTTPS run (dev-friendly)
 # ----------------------------
 if __name__ == "__main__":
+    print("Running server from:", SCRIPT_DIR)
+    print("Data directory:", BASE_DIR.resolve())
     ensure_dirs()
     if LOCAL:
         host = os.environ.get("HOST", "127.0.0.1")

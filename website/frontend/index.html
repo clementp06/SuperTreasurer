@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Télespoir — Déclaration de dépense</title>
+    <link rel="stylesheet" href="./css/styles.css" />
+  </head>
+
+  <body>
+    <main class="container">
+      <h1>Déclarer une dépense</h1>
+      <p class="sub">Remplis les infos + ajoute ta facture + signe.</p>
+
+      <form id="expenseForm" class="card">
+        <div class="grid">
+          <label>
+            Nom
+            <input id="lastName" name="lastName" type="text" required autocomplete="family-name" />
+          </label>
+
+          <label>
+            Prénom
+            <input id="firstName" name="firstName" type="text" required autocomplete="given-name" />
+          </label>
+
+          <label>
+            Date de l’achat
+            <input id="purchaseDate" name="purchaseDate" type="date" required />
+          </label>
+
+          <label>
+            Montant (€)
+            <input id="amount" name="amount" type="number" inputmode="decimal" step="0.01" min="0" required />
+          </label>
+
+          <label class="full">
+            Motif de l’achat
+            <input id="purpose" name="purpose" type="text" required />
+          </label>
+
+          <label class="full">
+            Description de ce qui est acheté
+            <input id="designation" name="designation" type="text" required />
+          </label>
+          <label>
+            Mot de passe
+            <input id="memberPassword" name="memberPassword" type="password" required autocomplete="current-password" />
+          </label>
+        </div>
+
+        <div class="divider"></div>
+
+        <label class="file">
+          Facture (PDF / image)
+          <input id="invoiceFile" name="invoiceFile" type="file" accept="application/pdf,image/*" required />
+        </label>
+
+        <div class="sigBlock">
+          <div class="sigHeader">
+            <div>
+              <div class="sigTitle">Signature</div>
+              <div class="sigHint">Dessine dans la zone ci-dessous (souris ou doigt).</div>
+            </div>
+            <button id="clearSig" type="button" class="btn btn-secondary">Effacer</button>
+          </div>
+
+          <div class="canvasWrap">
+            <canvas id="sigCanvas" width="240" height="240"></canvas>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="sendBtn" type="submit" class="btn btn-primary">Envoyer</button>
+        </div>
+
+        <pre id="status" class="status" aria-live="polite"></pre>
+      </form>
+    </main>
+
+    <script src="./js/app.js"></script>
+  </body>
+</html>
