@@ -47,7 +47,8 @@ import javafx.embed.swing.SwingFXUtils;
 
 import java.io.File;
 import java.io.IOException;
-
+import java.net.URI;
+import java.net.http.HttpRequest;
 import java.nio.file.Files;
 
 import java.time.LocalDateTime;
@@ -853,5 +854,72 @@ public class PdfEditorTool implements ToolModule {
         out = out.replaceAll("[^a-z0-9\\-_]+", "_");
         if (out.isBlank()) out = "template";
         return out;
+    }
+    private HttpRequest CreateNDFListRequest(String password, URI uri){
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(uri)
+                .header("X-Api-Key", password)
+                .GET()
+                .build();
+        return request;
+    }
+    private HttpRequest CreateNDFInvoiceRequest(String password, URI uri, String NDFid){
+        String fullUri= uri.toString() + "/" + NDFid + "/invoice";
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(fullUri))
+                .header("X-Api-Key", password)
+                .GET()
+                .build();
+        return request;
+    }
+    private HttpRequest CreateNDFSignatureRequest(String password, URI uri, String NDFid){
+        String fullUri= uri.toString() + "/" + NDFid + "/signature";
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(fullUri))
+                .header("X-Api-Key", password)
+                .GET()
+                .build();
+        return request;
+    }
+    private HttpRequest CreateDeleteNDFRequest(String password, URI uri, String NDFid){
+        String fullUri= uri.toString() + "/" + NDFid;
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(fullUri))
+                .header("X-Api-Key", password)
+                .DELETE()
+                .build();
+        return request;
+    }
+    private HttpRequest CreateRestoreBinRequest(String password, URI uri, String NDFid){
+        String fullUri= uri.toString() + "/trash" + "/restore";
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(fullUri))
+                .header("X-Api-Key", password)
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .build();
+        return request;
+    }
+    record NDFText(
+        String last_name,
+        String first_name,
+        String date,
+        String purpose,
+        String designation,
+        double amount
+    ){}
+    record NDFEntry(String id, NDFText text){}
+    List<NDFEntry> fetchNDFEntries(String password, URI uri, ObjectMapper objectMapper) throws IOException, InterruptedException {
+
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = CreateNDFListRequest(password, uri);
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new IOException("Failed to fetch NDF entries: " + response.statusCode());
+        }
+
+        String responseBody = response.body();
+        List<NDFEntry> entries = objectMapper.readValue(responseBody, new TypeReference<List<NDFEntry>>(){});
+        return entries;
     }
 }
