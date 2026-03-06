@@ -20,12 +20,12 @@ import os
 
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": ["http://127.0.0.1:8000", "http://localhost:8000"]}})
+#CORS(app, resources={r"/*": {"origins": ["http://127.0.0.1:8000", "http://localhost:8000"]}})
 
 # ----------------------------
 # Configuration (simple + explicite)
 # ----------------------------
-LOCAL=True
+LOCAL=False
 # Dossier où se trouve ce fichier server.py
 SCRIPT_DIR = Path(__file__).resolve().parent
 # Tous les chemins deviennent relatifs à server.py
@@ -180,7 +180,6 @@ def atomic_rename(src: Path, dst: Path) -> None:
 # ----------------------------
 # Member endpoints
 # ----------------------------
-@app.post("/member/expenses")
 @app.post("/member/expenses")
 def member_create_expense_json_only():
     """

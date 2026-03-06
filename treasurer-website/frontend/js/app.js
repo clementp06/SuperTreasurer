@@ -1,4 +1,4 @@
-const BACKEND_BASE_URL = "http://127.0.0.1:5000";
+const BACKEND_BASE_URL = "/treasurer-api";
 
 const form = document.getElementById("expenseForm");
 const statusEl = document.getElementById("status");
