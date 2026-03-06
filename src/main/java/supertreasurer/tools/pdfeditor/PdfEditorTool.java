@@ -30,6 +30,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
+import javafx.scene.control.TitledPane;
 
 import supertreasurer.tools.ToolModule;
 
@@ -48,7 +49,9 @@ import javafx.embed.swing.SwingFXUtils;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
 
 import java.time.LocalDateTime;
@@ -60,6 +63,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 public class PdfEditorTool implements ToolModule {
     private PDDocument pdfDocument;
@@ -184,8 +190,12 @@ public class PdfEditorTool implements ToolModule {
         ArrayList<Balise> balises = new ArrayList<>();
 
         Template(String templateName) throws IOException {
+            this(Path.of("data", "pdfeditor", "templates", templateName), templateName);
+        }
+
+        Template(Path folderPath, String templateName) throws IOException {
             this.name = templateName;
-            this.folderPath = Path.of("data", "pdfeditor", "templates", templateName);
+            this.folderPath = folderPath;
             this.pdfPath = folderPath.resolve("template.pdf");
             loadBalisesFromJson();
         }
@@ -560,6 +570,8 @@ public class PdfEditorTool implements ToolModule {
 
         pdf_tabs.getTabs().add(pattern_creator);
         pdf_tabs.getTabs().add(templates);
+        pdf_tabs.getTabs().add(createGestionNdfTab());
+        
 
         tab.setContent(pdf_tabs);
         tab.setClosable(false);
@@ -758,7 +770,41 @@ public class PdfEditorTool implements ToolModule {
         if (pdfH <= 0 || viewH <= 0) return hPdf;
         return hPdf * viewH / pdfH;
     }
+    private void applyTemplateOnDoc(
+        PDDocument doc,
+        Template template,
+        Map<Balise, TextField> textInputs,
+        Map<Balise, Path> imageInputs
+    ) throws IOException {
 
+        PDPage page = doc.getPage(0);
+
+        try (PDPageContentStream cs = new PDPageContentStream(doc, page, AppendMode.APPEND, true, true)) {
+            for (Balise b : template.balises) {
+
+                if ("TEXT".equalsIgnoreCase(b.type)) {
+                    TextField tf = textInputs.get(b);
+                    String v = tf == null ? "" : tf.getText();
+
+                    if (v != null && !v.isBlank()) {
+                            cs.beginText();
+                            cs.setFont(PDType1Font.HELVETICA, Math.max(1, b.height));
+                            cs.newLineAtOffset(b.x, b.y-(3*b.height/4));
+                            cs.showText(safePdfText(v));
+                            cs.endText();
+                    }
+
+                } else if ("IMAGE".equalsIgnoreCase(b.type)) {
+                    Path p = imageInputs.get(b);
+                    if (p != null && Files.exists(p)) {
+                            PDImageXObject img = PDImageXObject.createFromFileByContent(p.toFile(), doc);
+                            float y = b.y - Math.max(1, b.height);
+                            cs.drawImage(img, b.x, y, Math.max(1, b.width), Math.max(1, b.height));
+                    }
+                }
+            }
+        }
+    }
     private Path exportFilledTemplate(Template template, Map<Balise, TextField> textInputs, Map<Balise, Path> imageInputs) throws IOException {
         Path resultsDir = Path.of("data", "pdfeditor", "results");
         Files.createDirectories(resultsDir);
@@ -767,31 +813,7 @@ public class PdfEditorTool implements ToolModule {
         Path out = resultsDir.resolve(template.name + "_" + stamp + ".pdf");
 
         try (PDDocument doc = PDDocument.load(template.pdfPath.toFile())) {
-            PDPage page = doc.getPage(0);
-
-            try (PDPageContentStream cs = new PDPageContentStream(doc, page, AppendMode.APPEND, true, true)) {
-                for (Balise b : template.balises) {
-                    if ("TEXT".equalsIgnoreCase(b.type)) {
-                        TextField tf = textInputs.get(b);
-                        String v = tf == null ? "" : tf.getText();
-                        if (v != null && !v.isBlank()) {
-                            cs.beginText();
-                            cs.setFont(PDType1Font.HELVETICA, Math.max(1, b.height));
-                            cs.newLineAtOffset(b.x, b.y-(3*b.height/4));
-                            cs.showText(safePdfText(v));
-                            cs.endText();
-                        }
-                    } else if ("IMAGE".equalsIgnoreCase(b.type)) {
-                        Path p = imageInputs.get(b);
-                        if (p != null && Files.exists(p)) {
-                            PDImageXObject img = PDImageXObject.createFromFileByContent(p.toFile(), doc);
-                            float y = b.y - Math.max(1, b.height);
-                            cs.drawImage(img, b.x, y, Math.max(1, b.width), Math.max(1, b.height));
-                        }
-                    }
-                }
-            }
-
+            applyTemplateOnDoc(doc, template, textInputs, imageInputs);
             doc.save(out.toFile());
         }
 
@@ -829,7 +851,20 @@ public class PdfEditorTool implements ToolModule {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
-            if (c >= 32 && c <= 126) sb.append(c);
+            if (c== 'é') sb.append('e');
+            else if (c == 'è') sb.append('e');
+            else if (c == 'ê') sb.append('e');
+            else if (c == 'ë') sb.append('e');
+            else if (c == 'à') sb.append('a');
+            else if (c == 'á') sb.append('a');
+            else if (c == 'â') sb.append('a');
+            else if (c == 'ä') sb.append('a');
+            else if (c == 'ù') sb.append('u');
+            else if (c == 'ú') sb.append('u');
+            else if (c == 'û') sb.append('u');
+            else if (c == 'ü') sb.append('u');
+            else if (c =='€') sb.append('€'); //ça peut tout casser mais y'en a besoin
+            else if (c >= 32 && c <= 126) sb.append(c);
             else sb.append('?');
         }
         return sb.toString();
@@ -855,71 +890,557 @@ public class PdfEditorTool implements ToolModule {
         if (out.isBlank()) out = "template";
         return out;
     }
-    private HttpRequest CreateNDFListRequest(String password, URI uri){
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(uri)
-                .header("X-Api-Key", password)
-                .GET()
-                .build();
-        return request;
-    }
-    private HttpRequest CreateNDFInvoiceRequest(String password, URI uri, String NDFid){
-        String fullUri= uri.toString() + "/" + NDFid + "/invoice";
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(fullUri))
-                .header("X-Api-Key", password)
-                .GET()
-                .build();
-        return request;
-    }
-    private HttpRequest CreateNDFSignatureRequest(String password, URI uri, String NDFid){
-        String fullUri= uri.toString() + "/" + NDFid + "/signature";
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(fullUri))
-                .header("X-Api-Key", password)
-                .GET()
-                .build();
-        return request;
-    }
-    private HttpRequest CreateDeleteNDFRequest(String password, URI uri, String NDFid){
-        String fullUri= uri.toString() + "/" + NDFid;
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(fullUri))
-                .header("X-Api-Key", password)
-                .DELETE()
-                .build();
-        return request;
-    }
-    private HttpRequest CreateRestoreBinRequest(String password, URI uri, String NDFid){
-        String fullUri= uri.toString() + "/trash" + "/restore";
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(fullUri))
-                .header("X-Api-Key", password)
-                .POST(HttpRequest.BodyPublishers.noBody())
-                .build();
-        return request;
-    }
     record NDFText(
-        String last_name,
-        String first_name,
-        String date,
-        String purpose,
-        String designation,
-        double amount
-    ){}
+            String last_name,
+            String first_name,
+            String date,
+            String purpose,
+            String designation,
+            double amount
+        ){}
     record NDFEntry(String id, NDFText text){}
-    List<NDFEntry> fetchNDFEntries(String password, URI uri, ObjectMapper objectMapper) throws IOException, InterruptedException {
+    public class NdfFilesService {
+        private final HttpClient client = HttpClient.newHttpClient();
+        private void downloadToFile(HttpRequest request, Path dest)
+                throws IOException, InterruptedException {
 
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = CreateNDFListRequest(password, uri);
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<Path> resp = client.send(request, HttpResponse.BodyHandlers.ofFile(dest));
+            if (resp.statusCode() != 200) {
+                Files.deleteIfExists(dest);
+                throw new IOException("Download failed: HTTP " + resp.statusCode());
+            }
+        }
+        private HttpRequest CreateNDFListRequest(String password, URI uri){
+            URI fullUri = URI.create(uri.toString() + "/expenses");
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(fullUri)
+                    .header("X-Api-Key", password)
+                    .GET()
+                    .build();
+            return request;
+        }
+        private HttpRequest CreateNDFInvoiceRequest(String password, URI uri, String NDFid){
+            String fullUri= uri.toString() + "/expenses"+ "/" + NDFid + "/invoice";
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(fullUri))
+                    .header("X-Api-Key", password)
+                    .GET()
+                    .build();
+            return request;
+        }
+        private HttpRequest CreateNDFSignatureRequest(String password, URI uri, String NDFid){
+            String fullUri= uri.toString() + "/expenses"+ "/" + NDFid + "/signature";
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(fullUri))
+                    .header("X-Api-Key", password)
+                    .GET()
+                    .build();
+            return request;
+        }
+        private HttpRequest CreateDeleteNDFRequest(String password, URI uri, String NDFid){
+            String fullUri= uri.toString() + "/expenses"+ "/" + NDFid;
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(fullUri))
+                    .header("X-Api-Key", password)
+                    .DELETE()
+                    .build();
+            return request;
+        }
+        private HttpRequest CreateRestoreBinRequest(String password, URI uri){
+            String fullUri= uri.toString() + "/trash" + "/restore";
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(fullUri))
+                    .header("X-Api-Key", password)
+                    .POST(HttpRequest.BodyPublishers.noBody())
+                    .build();
+            return request;
+        }
+        List<NDFEntry> fetchNDFEntries(String password, URI uri, ObjectMapper objectMapper) throws IOException, InterruptedException {
+            HttpRequest request = CreateNDFListRequest(password, uri);
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-        if (response.statusCode() != 200) {
-            throw new IOException("Failed to fetch NDF entries: " + response.statusCode());
+            if (response.statusCode() != 200) {
+                throw new IOException("Failed to fetch NDF entries: " + response.statusCode());
+            }
+
+            String responseBody = response.body();
+            List<NDFEntry> entries = objectMapper.readValue(responseBody, new TypeReference<List<NDFEntry>>(){});
+            return entries;
+        }
+        public void downloadNdfFiles(String password, URI baseUri, String ndfId)
+                throws IOException, InterruptedException {
+
+            Path folder = Path.of("data", "pdfeditor", "NDF", ndfId);
+            Files.createDirectories(folder);
+
+            Path sigPath = folder.resolve("signature.png");
+            Path invPath = folder.resolve("invoice"); 
+
+            HttpRequest sigReq = CreateNDFSignatureRequest(password, baseUri, ndfId);
+            downloadToFile(sigReq, sigPath);
+
+            HttpRequest invReq = CreateNDFInvoiceRequest(password, baseUri, ndfId);
+            downloadToFile(invReq, invPath);
+        }
+        public void deleteNdf(String password, URI baseUri, String ndfId) throws IOException, InterruptedException {
+            HttpRequest delReq = CreateDeleteNDFRequest(password, baseUri, ndfId);
+            HttpResponse<String> response = client.send(delReq, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new IOException("Failed to delete NDF: " + response.statusCode());
+            }
+        }
+        public void restoreBin(String password, URI baseUri) throws IOException, InterruptedException {
+            HttpRequest restoreReq = CreateRestoreBinRequest(password, baseUri);
+            HttpResponse<String> response = client.send(restoreReq, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new IOException("Failed to restore bin: " + response.statusCode());
+            }
+        }
+    }
+    
+    private Tab createGestionNdfTab() {
+        Tab gestionTab = new Tab("GestionNDF");
+        gestionTab.setClosable(false);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        NdfFilesService ndfService = new NdfFilesService();
+
+        SplitPane root = new SplitPane();
+        root.setDividerPositions(0.60);
+
+        ScrollPane previewScroll = new ScrollPane();
+        previewScroll.setFitToWidth(true);
+        previewScroll.setFitToHeight(true);
+
+        StackPane previewStack = new StackPane();
+        previewStack.setAlignment(Pos.TOP_LEFT);
+
+        ImageView previewImageView = new ImageView();
+        previewImageView.setPreserveRatio(true);
+
+        Pane previewOverlay = new Pane();
+        previewOverlay.setPickOnBounds(false);
+        previewOverlay.setMouseTransparent(true);
+
+        previewStack.getChildren().addAll(previewImageView, previewOverlay);
+        previewScroll.setContent(previewStack);
+
+        previewScroll.viewportBoundsProperty().addListener((obs, oldV, newV) -> {
+            if (newV != null) {
+                double w = newV.getWidth();
+                if (w > 0) previewImageView.setFitWidth(w);
+            }
+        });
+
+        VBox rightBox = new VBox(10);
+        rightBox.setPadding(new Insets(10));
+
+        TextField baseUriField = new TextField();
+        baseUriField.setPromptText("Base URI");
+        baseUriField.setText("http://127.0.0.1:5000/treasurer");
+
+        TextField apiKeyField = new TextField();
+        apiKeyField.setPromptText("X-Api-Key");
+
+        Button fetchBtn = new Button("Fetch NDF");
+        Button restoreBinBtn = new Button("RestoreBin");
+        Button seeResultsBtn = new Button("See Results");
+
+        Label statusLabel = new Label("");
+
+        VBox ndfListBox = new VBox(8);
+        ndfListBox.setPadding(new Insets(8));
+        ScrollPane ndfListScroll = new ScrollPane(ndfListBox);
+        ndfListScroll.setFitToWidth(true);
+        ndfListScroll.setPrefViewportHeight(280);
+
+        Label selectedNdfLabel = new Label("No accepted NDF selected");
+
+        TextField ndfNumberField = new TextField();
+        ndfNumberField.setPromptText("NDF number on 3 digits");
+
+        Button importTreasurerSignatureBtn = new Button("Import treasurer signature");
+        Label treasurerSignatureLabel = new Label("No treasurer signature selected");
+
+        Button seeChangesBtn = new Button("See Changes");
+        Button exportFinalBtn = new Button("Export final NDF");
+
+        VBox finalizeBox = new VBox(8,
+            selectedNdfLabel,
+            new Label("NDF number"),
+            ndfNumberField,
+            importTreasurerSignatureBtn,
+            treasurerSignatureLabel,
+            seeChangesBtn,
+            exportFinalBtn
+        );
+        finalizeBox.setPadding(new Insets(8));
+
+        TitledPane finalizePane = new TitledPane("Finalize selected NDF", finalizeBox);
+        finalizePane.setExpanded(false);
+
+        rightBox.getChildren().addAll(
+            new Label("Server"),
+            baseUriField,
+            apiKeyField,
+            new HBox(10, fetchBtn, restoreBinBtn, seeResultsBtn),
+            new Separator(),
+            new Label("Remote NDF list"),
+            ndfListScroll,
+            finalizePane,
+            statusLabel
+        );
+
+        root.getItems().addAll(previewScroll, rightBox);
+        gestionTab.setContent(root);
+
+        final NDFEntry[] currentAcceptedEntry = new NDFEntry[1];
+        final Path[] currentAcceptedDir = new Path[1];
+        final Path[] currentTreasurerSignature = new Path[1];
+
+        final Template[] currentNdfTemplate = new Template[1];
+        final PDDocument[] currentPreviewDoc = new PDDocument[1];
+        final BufferedImage[] currentPreviewImg = new BufferedImage[1];
+
+        Runnable clearPreview = () -> {
+            previewOverlay.getChildren().clear();
+            previewImageView.setImage(null);
+            currentAcceptedEntry[0] = null;
+            currentAcceptedDir[0] = null;
+            currentTreasurerSignature[0] = null;
+            currentNdfTemplate[0] = null;
+            currentPreviewImg[0] = null;
+            if (currentPreviewDoc[0] != null) {
+                try { currentPreviewDoc[0].close(); } catch (Exception ignored) {}
+                currentPreviewDoc[0] = null;
+            }
+        };
+
+        fetchBtn.setOnAction(e -> {
+            String baseUriText = baseUriField.getText();
+            String apiKey = apiKeyField.getText();
+
+            if (baseUriText == null || baseUriText.isBlank()) {
+                statusLabel.setText("Base URI is empty");
+                return;
+            }
+            if (apiKey == null || apiKey.isBlank()) {
+                statusLabel.setText("API key is empty");
+                return;
+            }
+
+            try {
+                List<NDFEntry> entries = ndfService.fetchNDFEntries(apiKey, URI.create(baseUriText), objectMapper);
+
+                ndfListBox.getChildren().clear();
+
+                if (entries.isEmpty()) {
+                    ndfListBox.getChildren().add(new Label("No remote NDF found"));
+                }
+
+                for (NDFEntry entry : entries) {
+                    VBox card = new VBox(5);
+                    card.setPadding(new Insets(8));
+                    card.setStyle("-fx-border-color: lightgray; -fx-border-width: 1; -fx-background-color: rgba(240,240,240,0.35);");
+
+                    Label idLabel = new Label("ID: " + entry.id());
+                    Label whoLabel = new Label("Beneficiary: " + entry.text().first_name() + " " + entry.text().last_name());
+                    Label dateLabel = new Label("Date: " + entry.text().date());
+                    Label purposeLabel = new Label("Purpose: " + entry.text().purpose());
+                    Label designationLabel = new Label("Designation: " + entry.text().designation());
+                    Label amountLabel = new Label("Amount: " + formatNdfAmount(entry.text().amount()));
+
+                    Button rejectBtn = new Button("Reject");
+                    Button acceptBtn = new Button("Accept");
+
+                    rejectBtn.setOnAction(ev -> {
+                        try {
+                            ndfService.deleteNdf(apiKey, URI.create(baseUriText), entry.id());
+                            statusLabel.setText("Rejected NDF " + entry.id());
+                            fetchBtn.fire();
+                        } catch (IOException | InterruptedException ex) {
+                            statusLabel.setText("Reject error: " + ex.getMessage());
+                        }
+                    });
+
+                    acceptBtn.setOnAction(ev -> {
+                        try {
+                            ndfService.downloadNdfFiles(apiKey, URI.create(baseUriText), entry.id());
+
+                            currentAcceptedEntry[0] = entry;
+                            currentAcceptedDir[0] = Path.of("data", "pdfeditor", "NDF", entry.id());
+                            currentTreasurerSignature[0] = null;
+
+                            selectedNdfLabel.setText(
+                                "Selected NDF: " + entry.id() +
+                                "\nBeneficiary: " + entry.text().first_name() + " " + entry.text().last_name() +
+                                "\nAmount: " + formatNdfAmount(entry.text().amount())
+                            );
+                            treasurerSignatureLabel.setText("No treasurer signature selected");
+                            finalizePane.setExpanded(true);
+
+                            Template ndfTemplate = ensureNdfTemplateCache();
+                            currentNdfTemplate[0] = ndfTemplate;
+
+                            if (currentPreviewDoc[0] != null) {
+                                try { currentPreviewDoc[0].close(); } catch (Exception ignored) {}
+                            }
+
+                            currentPreviewDoc[0] = PDDocument.load(ndfTemplate.pdfPath.toFile());
+                            PDFRenderer renderer = new PDFRenderer(currentPreviewDoc[0]);
+                            currentPreviewImg[0] = renderer.renderImageWithDPI(0, 220, ImageType.RGB);
+
+                            previewImageView.setImage(SwingFXUtils.toFXImage(currentPreviewImg[0], null));
+                            previewOverlay.getChildren().clear();
+
+                            statusLabel.setText("Accepted NDF " + entry.id() + " and downloaded files");
+                        } catch (IOException | InterruptedException ex) {
+                            statusLabel.setText("Accept error: " + ex.getMessage());
+                        }
+                    });
+
+                    HBox buttons = new HBox(10, rejectBtn, acceptBtn);
+
+                    card.getChildren().addAll(
+                        idLabel,
+                        whoLabel,
+                        dateLabel,
+                        purposeLabel,
+                        designationLabel,
+                        amountLabel,
+                        buttons
+                    );
+
+                    ndfListBox.getChildren().add(card);
+                }
+
+                statusLabel.setText("Fetched " + entries.size() + " NDF");
+            } catch (IOException | InterruptedException ex) {
+                statusLabel.setText("Fetch error: " + ex.getMessage());
+            }
+        });
+
+        restoreBinBtn.setOnAction(e -> {
+            String baseUriText = baseUriField.getText();
+            String apiKey = apiKeyField.getText();
+
+            if (baseUriText == null || baseUriText.isBlank()) {
+                statusLabel.setText("Base URI is empty");
+                return;
+            }
+            if (apiKey == null || apiKey.isBlank()) {
+                statusLabel.setText("API key is empty");
+                return;
+            }
+
+            try {
+                ndfService.restoreBin(apiKey, URI.create(baseUriText));
+                statusLabel.setText("Bin restored");
+                fetchBtn.fire();
+            } catch (IOException | InterruptedException ex) {
+                statusLabel.setText("RestoreBin error: " + ex.getMessage());
+            }
+        });
+
+        seeResultsBtn.setOnAction(e -> {
+            try {
+                Path results = Path.of("data", "pdfeditor", "NDF");
+                Files.createDirectories(results);
+                openFolder(results);
+            } catch (IOException ex) {
+                statusLabel.setText("Error: " + ex.getMessage());
+            }
+        });
+
+        importTreasurerSignatureBtn.setOnAction(e -> {
+            if (currentAcceptedEntry[0] == null) {
+                statusLabel.setText("Accept an NDF first");
+                return;
+            }
+
+            Window w = importTreasurerSignatureBtn.getScene().getWindow();
+            FileChooser fc = new FileChooser();
+            fc.setTitle("Select treasurer signature");
+            fc.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg")
+            );
+            File f = fc.showOpenDialog(w);
+            if (f != null) {
+                currentTreasurerSignature[0] = f.toPath();
+                treasurerSignatureLabel.setText(f.getName());
+                statusLabel.setText("Treasurer signature selected");
+            }
+        });
+
+        seeChangesBtn.setOnAction(e -> {
+            if (currentAcceptedEntry[0] == null || currentAcceptedDir[0] == null || currentNdfTemplate[0] == null || currentPreviewDoc[0] == null || currentPreviewImg[0] == null) {
+                statusLabel.setText("Accept an NDF first");
+                return;
+            }
+
+            String number3 = pad3(ndfNumberField.getText());
+            if (number3 == null) {
+                statusLabel.setText("Enter a valid 3-digit NDF number");
+                return;
+            }
+
+            Map<String, String> textValues = buildNdfTextValues(currentAcceptedEntry[0], number3);
+            Map<String, Path> imageValues = buildNdfImageValues(currentAcceptedDir[0], currentTreasurerSignature[0]);
+
+            previewOverlay.getChildren().clear();
+
+            for (Balise b : currentNdfTemplate[0].balises) {
+                if ("TEXT".equalsIgnoreCase(b.type)) {
+                    String value = textValues.get(b.name);
+                    if (value != null && !value.isBlank()) {
+                        Node node = makeTextPreviewNode(currentPreviewDoc[0], currentPreviewImg[0], previewImageView, b, value);
+                        if (node != null) previewOverlay.getChildren().add(node);
+                    }
+                } else if ("IMAGE".equalsIgnoreCase(b.type)) {
+                    Path p = imageValues.get(b.name);
+                    if (p != null && Files.exists(p)) {
+                        Node node = makeImagePreviewNode(currentPreviewDoc[0], currentPreviewImg[0], previewImageView, b, p);
+                        if (node != null) previewOverlay.getChildren().add(node);
+                    }
+                }
+            }
+
+            statusLabel.setText("Preview updated");
+        });
+
+        exportFinalBtn.setOnAction(e -> {
+            if (currentAcceptedEntry[0] == null || currentAcceptedDir[0] == null || currentNdfTemplate[0] == null) {
+                statusLabel.setText("Accept an NDF first");
+                return;
+            }
+
+            String number3 = pad3(ndfNumberField.getText());
+            if (number3 == null) {
+                statusLabel.setText("Enter a valid 3-digit NDF number");
+                return;
+            }
+
+            try {
+                Path sourceInvoice = currentAcceptedDir[0].resolve("invoice");
+                if (!Files.exists(sourceInvoice)) {
+                    statusLabel.setText("Downloaded invoice not found");
+                    return;
+                }
+
+                Path renamedInvoice = currentAcceptedDir[0].resolve("FAC-R-2026_" + number3 + ".pdf");
+                Files.copy(sourceInvoice, renamedInvoice, StandardCopyOption.REPLACE_EXISTING);
+
+                Map<String, String> textValues = buildNdfTextValues(currentAcceptedEntry[0], number3);
+                Map<String, Path> imageValues = buildNdfImageValues(currentAcceptedDir[0], currentTreasurerSignature[0]);
+
+                Path finalPdf = currentAcceptedDir[0].resolve("NDF-2026_" + number3 + ".pdf");
+                Map<Balise, TextField> textInputs = new HashMap<>();
+                Map<Balise, Path> imageInputs = new HashMap<>();
+
+                for (Balise b : currentNdfTemplate[0].balises) {
+                    if ("TEXT".equalsIgnoreCase(b.type)) {
+                        String v = textValues.get(b.name);           // ton Map<String,String>
+                        TextField fake = new TextField(v == null ? "" : v);
+                        textInputs.put(b, fake);
+                    } else if ("IMAGE".equalsIgnoreCase(b.type)) {
+                        Path p = imageValues.get(b.name);            // ton Map<String,Path>
+                        if (p != null) imageInputs.put(b, p);
+                    }
+                }
+
+                exportFilledTemplateToPath(currentNdfTemplate[0], textInputs, imageInputs, finalPdf);
+
+                statusLabel.setText("Final NDF exported: " + finalPdf.getFileName());
+            } catch (IOException ex) {
+                statusLabel.setText("Export error: " + ex.getMessage());
+            }
+        });
+
+        return gestionTab;
+    }
+
+    private Template ensureNdfTemplateCache() throws IOException {
+        Path cacheDir = Path.of("data", "pdfeditor", "NDF", "_template_cache");
+        Files.createDirectories(cacheDir);
+
+        copyResourceToPath("/ndf_template/template.pdf", cacheDir.resolve("template.pdf"));
+        copyResourceToPath("/ndf_template/template.json", cacheDir.resolve("template.json"));
+
+        return new Template(cacheDir, "ndf_template");
+    }
+
+    private void copyResourceToPath(String resourcePath, Path dest) throws IOException {
+        try (var in = getClass().getResourceAsStream(resourcePath)) {
+            if (in == null) {
+                throw new IOException("Missing resource: " + resourcePath);
+            }
+            Files.copy(in, dest, StandardCopyOption.REPLACE_EXISTING);
+        }
+    }
+
+    private Map<String, String> buildNdfTextValues(NDFEntry entry, String number3) {
+        Map<String, String> map = new HashMap<>();
+
+        String noteNumber = "2026_" + number3;
+        String invoiceRef = "FAC-R-2026_" + number3;
+        String amount = formatNdfAmount(entry.text().amount());
+
+        map.put("numero_note_frais", "1");
+        map.put("description", nullToEmpty(entry.text().designation()));
+        map.put("ref_facture", invoiceRef);
+        map.put("Montant_haut", amount);
+        map.put("montant_bas", amount);
+        map.put("prenom", nullToEmpty(entry.text().first_name()));
+        map.put("nom", nullToEmpty(entry.text().last_name()));
+        map.put("date", nullToEmpty(entry.text().date()));
+        map.put("motif", nullToEmpty(entry.text().purpose()));
+        map.put("numero_note_haut", noteNumber);
+
+        return map;
+    }
+
+    private Map<String, Path> buildNdfImageValues(Path ndfDir, Path treasurerSignaturePath) {
+        Map<String, Path> map = new HashMap<>();
+
+        Path beneficiarySignature = ndfDir.resolve("signature.png");
+        if (Files.exists(beneficiarySignature)) {
+            map.put("signature_benef", beneficiarySignature);
         }
 
-        String responseBody = response.body();
-        List<NDFEntry> entries = objectMapper.readValue(responseBody, new TypeReference<List<NDFEntry>>(){});
-        return entries;
+        if (treasurerSignaturePath != null && Files.exists(treasurerSignaturePath)) {
+            map.put("signature_trez", treasurerSignaturePath);
+        }
+
+        return map;
+    }
+
+    private Path exportFilledTemplateToPath(
+        Template template,
+        Map<Balise, TextField> textInputs,
+        Map<Balise, Path> imageInputs,
+        Path out
+    ) throws IOException {
+
+        Files.createDirectories(out.getParent());
+
+        try (PDDocument doc = PDDocument.load(template.pdfPath.toFile())) {
+            applyTemplateOnDoc(doc, template, textInputs, imageInputs);
+            doc.save(out.toFile());
+        }
+
+        return out;
+    }
+
+    private String pad3(String raw) {
+        if (raw == null) return null;
+        String digits = raw.replaceAll("\\D", "");
+        if (digits.isBlank()) return null;
+        if (digits.length() > 3) return null;
+        return String.format("%03d", Integer.parseInt(digits));
+    }
+
+    private String formatNdfAmount(double amount) {
+        String s = String.format("%.2f", amount).replace('.', ',');
+        return s + " €";
     }
 }

@@ -100,7 +100,7 @@ input:focus {
 
 .canvasWrap {
   border: 1px solid var(--border);
-  background: #0b0e13;
+  background: #ffffff;
   border-radius: 12px;
   overflow: hidden;
   width: 240px;
