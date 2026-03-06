@@ -20,12 +20,14 @@ import os
 
 
 app = Flask(__name__)
-#CORS(app, resources={r"/*": {"origins": ["http://127.0.0.1:8000", "http://localhost:8000"]}})
+
 
 # ----------------------------
 # Configuration (simple + explicite)
 # ----------------------------
 LOCAL=False
+if LOCAL:
+    CORS(app, resources={r"/*": {"origins": ["http://127.0.0.1:8000", "http://localhost:8000"]}})
 # Dossier où se trouve ce fichier server.py
 SCRIPT_DIR = Path(__file__).resolve().parent
 # Tous les chemins deviennent relatifs à server.py
@@ -479,4 +481,4 @@ if __name__ == "__main__":
     if LOCAL:
         app.run(host="127.0.0.1", port=5000, debug=True)
     else:
-        app.run(host=host, port=port, ssl_context=ssl_context)
+        app.run(host="127.0.0.1", port=5000, debug=True)
