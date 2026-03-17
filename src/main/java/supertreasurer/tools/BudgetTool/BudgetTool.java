@@ -228,6 +228,7 @@ public class BudgetTool implements ToolModule {
             for (String activityId : activityIds) {
 
                 Path activityDir = activitiesDir.resolve(activityId);
+                final Path activityDirFinal = activityDir;
 
                 String activityName = activityId;
                 Path activityFile = activityDir.resolve("activity.json");
@@ -304,7 +305,18 @@ public class BudgetTool implements ToolModule {
                 
                 bilan_global += totalCents;
 
+                Button deleteActivityBtn = new Button("Delete activity");
+                deleteActivityBtn.setOnAction(e -> {
+                    try {
+                        deleteActivity(activityDirFinal);
+                        refreshBtn.fire();
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                });
+
                 VBox paneContent = new VBox(10,
+                    deleteActivityBtn,
                     new Label("Incomes"), incomes,
                     new Label("Expenses"), expenses
                 );
@@ -494,6 +506,16 @@ public class BudgetTool implements ToolModule {
                 .map(Path::toFile)
                 .forEach(File::delete);
         }
+    }
+    private void deleteActivity(Path activityDir) throws IOException {
+        if (!Files.exists(activityDir)) {
+            return;
+        }
+
+        Files.walk(activityDir)
+            .sorted(Comparator.reverseOrder())
+            .map(Path::toFile)
+            .forEach(File::delete);
     }
     private Path createLatex(Path toolDataDir) throws IOException {
         Path budgetsDir = toolDataDir;
@@ -1027,7 +1049,13 @@ public class BudgetTool implements ToolModule {
             }
             String activityName = activityCell != null ? activityCell.getStringCellValue() : "";
             //Tu dois lire la case bilanCell qui est une case à cocher et le transformer en bool
-            boolean inBilan = bilanCell != null && bilanCell.getCellType() == CellType.BOOLEAN && bilanCell.getBooleanCellValue();
+            boolean inBilan;
+            if (bilanCell==null || bilanCell.getCellType()==CellType.BOOLEAN) {
+                inBilan = bilanCell != null && bilanCell.getCellType() == CellType.BOOLEAN && bilanCell.getBooleanCellValue();
+            }
+            else {
+                inBilan = true;
+            }
             extracted_content.add(new Line(description, amountCents, activityName, inBilan));
         }
     }

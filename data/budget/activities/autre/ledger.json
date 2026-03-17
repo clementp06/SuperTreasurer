@@ -1,8 +1,14 @@
 [
 {
-  "id": "0f3d847a-df89-41d1-83b0-84fd3660b43a",
-  "date": "2026-02-25",
-  "description": "Note de frais (Nicodème)",
-  "amountCents": -935
+  "id": "474c9a82-c072-46b5-a4a2-191ef4d278b7",
+  "date": "2026-03-17",
+  "description": "renouvellement partenariat ActiViam",
+  "amountCents": 100000
+},
+{
+  "id": "3e2f9e7c-8ee2-4563-a7ae-8bde573c31cf",
+  "date": "2026-03-17",
+  "description": "Hello/Asso",
+  "amountCents": 55000
 }
 ]

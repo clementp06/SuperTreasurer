@@ -1,110 +1,242 @@
 [
 {
-  "id": "802ed509-45dd-41cf-b799-29996059de1b",
-  "date": "2026-02-25",
-  "description": "Note de frais (Jules)",
-  "amountCents": -5879
+  "id": "1b76c9da-2fc7-4c25-be5d-53747d6b23a6",
+  "date": "2026-03-17",
+  "description": "Préstation Soirée TomPOTla",
+  "amountCents": -37500
 },
 {
-  "id": "14f665b8-38ef-4ad7-aae6-e65406ba5eef",
-  "date": "2026-02-25",
-  "description": "Espèces vente de crêpes au pot",
-  "amountCents": 1900
+  "id": "d43f4267-2db6-43db-a371-b7f1833c2519",
+  "date": "2026-03-17",
+  "description": "lot TomPOTla",
+  "amountCents": -33999
 },
 {
-  "id": "f578b0cd-ba1d-48b2-899b-f82a43607422",
-  "date": "2026-02-25",
-  "description": "Transfert fonds vente de crêpes ",
-  "amountCents": 12031
+  "id": "669f80be-765f-4e46-a438-1ad6a4ace048",
+  "date": "2026-03-17",
+  "description": "lot TomPOTla",
+  "amountCents": -11800
 },
 {
-  "id": "11e16c34-44f3-46b6-bf56-0ba73ba6cc5e",
-  "date": "2026-02-25",
-  "description": "Transfert fonds vente de crêpes ",
-  "amountCents": 293
+  "id": "7ef9b8b9-88cd-41fc-a5e4-4b7c74d880bc",
+  "date": "2026-03-17",
+  "description": "lot TomPOTla",
+  "amountCents": -15000
 },
 {
-  "id": "87dc0571-f88a-48ef-b582-f91a8ba4e80d",
-  "date": "2026-02-25",
-  "description": "Paiement goodies",
-  "amountCents": 4000
+  "id": "ea302a2b-7797-4740-8a9e-2c9d6a040d3e",
+  "date": "2026-03-17",
+  "description": "stand Ekiden",
+  "amountCents": -23222
 },
 {
-  "id": "889a4e09-d0e9-466b-82b3-bd61fb933dcc",
-  "date": "2026-02-25",
-  "description": "Commande goodies (polaires)",
-  "amountCents": -47520
+  "id": "749d16f4-2048-40f3-9c2a-70bfe8a750a9",
+  "date": "2026-03-17",
+  "description": "stand Ekiden",
+  "amountCents": -19341
 },
 {
-  "id": "001bb5f3-7aad-4846-b0ee-e9a05137b2c6",
-  "date": "2026-02-25",
-  "description": "Versement paiements",
-  "amountCents": 28500
+  "id": "a9f89c75-175c-4782-a17c-8fa853ce46a3",
+  "date": "2026-03-17",
+  "description": "Stand bouffe ekiden",
+  "amountCents": 15291
 },
 {
-  "id": "20f956af-d665-4349-8f67-3d17dd624b1e",
-  "date": "2026-02-25",
-  "description": "Don Forum pour achat lot",
-  "amountCents": 48999
+  "id": "82118789-6c6b-4a8d-a69a-d99f58c7370c",
+  "date": "2026-03-17",
+  "description": "Prestation soirée TompPotla",
+  "amountCents": -15000
 },
 {
-  "id": "a4a176ad-41b5-46b5-aa71-4cad49f5fbee",
-  "date": "2026-02-25",
-  "description": "Achat lot Ipad Forum",
-  "amountCents": -48999
+  "id": "c2eb2571-dfba-4e41-abc3-c9644510c409",
+  "date": "2026-03-17",
+  "description": "TomPOTla",
+  "amountCents": -32090
 },
 {
-  "id": "b4eaebf6-0579-429f-a66d-a048ee4c6910",
-  "date": "2026-02-25",
-  "description": "Billeterie Bingo",
-  "amountCents": 100151
+  "id": "68f0a483-44ac-480f-b8f2-d718963ca4e2",
+  "date": "2026-03-17",
+  "description": "lot TomPOTla",
+  "amountCents": -13600
 },
 {
-  "id": "1de2cc7d-7290-49b3-b064-3fb262e6b4d6",
-  "date": "2026-02-25",
-  "description": "Comission kebabs KFT",
-  "amountCents": -27500
+  "id": "79aa87ce-add8-4899-9b47-cb6858981cdf",
+  "date": "2026-03-17",
+  "description": "Lot enceinte tompotla",
+  "amountCents": -3499
 },
 {
-  "id": "ef25ee28-8613-4861-bce5-70708445b0e3",
-  "date": "2026-02-25",
-  "description": "Versement paiements",
-  "amountCents": 31000
+  "id": "37c0abe8-9298-4cef-9c15-d93c0049be43",
+  "date": "2026-03-17",
+  "description": "Lot TomPOTla",
+  "amountCents": -17099
 },
 {
-  "id": "8f3ae294-e4cf-4fb3-b4fc-ffb4a01d678e",
-  "date": "2026-02-25",
-  "description": "Note de frais (Adam)",
-  "amountCents": -24367
+  "id": "bc5537dd-9e64-46c5-9c05-c84bee61ea6f",
+  "date": "2026-03-17",
+  "description": "Recettes KFT x Télespoir",
+  "amountCents": 10000
 },
 {
-  "id": "6db41541-0221-4792-9945-86a23e666c12",
-  "date": "2026-02-25",
-  "description": "Note de frais (Héloïse)",
-  "amountCents": -1998
+  "id": "86607d07-2841-4795-a420-cb05648488e5",
+  "date": "2026-03-17",
+  "description": "Sécurité TomPOTla",
+  "amountCents": -115085
 },
 {
-  "id": "93195917-46ed-4c8f-b130-e327bd48a53d",
-  "date": "2026-02-25",
-  "description": "APP BDE Pot",
-  "amountCents": 100000
+  "id": "e151a4fd-84c0-442e-9068-35e0e82f26b5",
+  "date": "2026-03-17",
+  "description": "Prestation repas staffeurs",
+  "amountCents": 82000
 },
 {
-  "id": "397c1040-0b29-4377-b18c-6c6b0998b68d",
-  "date": "2026-02-25",
-  "description": "Billeterie BDE Pot",
-  "amountCents": 131300
+  "id": "d39d97ad-9b95-4dde-8422-05e73b8af561",
+  "date": "2026-03-17",
+  "description": "Recettes Télébreizh",
+  "amountCents": 10247
 },
 {
-  "id": "d0fb802a-99bd-4214-a2ac-4e695f7c9df1",
-  "date": "2026-02-25",
-  "description": "Vigiles + alcool Pot",
-  "amountCents": -87564
+  "id": "18d6ae88-5614-4399-9806-0f6cb051832f",
+  "date": "2026-03-17",
+  "description": "Recettes Télébreizh",
+  "amountCents": 20434
 },
 {
-  "id": "0586240d-126a-4050-8cf1-98f555ee737a",
-  "date": "2026-02-25",
-  "description": "Encaissement entrée ",
-  "amountCents": 1662
+  "id": "0e22793b-7598-4d3a-9f1e-d4be412c58be",
+  "date": "2026-03-17",
+  "description": "Recettes Télébreizh",
+  "amountCents": 2081
+},
+{
+  "id": "bfd77e3f-c760-4b3e-9746-4aca22c59d6c",
+  "date": "2026-03-17",
+  "description": "Bingo 2024",
+  "amountCents": 2298
+},
+{
+  "id": "fbb95c47-7e13-40d2-a3b2-cadf98cae3f2",
+  "date": "2026-03-17",
+  "description": "Bingo",
+  "amountCents": 2921
+},
+{
+  "id": "6968064d-deca-4e81-81d6-398dabe01f48",
+  "date": "2026-03-17",
+  "description": "Bingo",
+  "amountCents": 4840
+},
+{
+  "id": "a01bea54-d7ef-4dc9-81d9-4ac2b7a9838c",
+  "date": "2026-03-17",
+  "description": "Bingo",
+  "amountCents": 16389
+},
+{
+  "id": "df3ae0d0-5c99-4355-aa62-81a178f39871",
+  "date": "2026-03-17",
+  "description": "Bingo",
+  "amountCents": 43472
+},
+{
+  "id": "15ff47e5-c7a4-49d8-b65f-a50bcfdee5d2",
+  "date": "2026-03-17",
+  "description": "Bingo",
+  "amountCents": 3225
+},
+{
+  "id": "1052a772-3b3b-464f-bf92-aa4b83a29ece",
+  "date": "2026-03-17",
+  "description": "places et tickets",
+  "amountCents": 4142
+},
+{
+  "id": "749a7d42-7fc5-4bc8-864e-6fcf9f07fe2a",
+  "date": "2026-03-17",
+  "description": "places et tickets",
+  "amountCents": 867
+},
+{
+  "id": "8056fbb3-8db3-4780-8be6-2e092d45ee1c",
+  "date": "2026-03-17",
+  "description": "places et tickets",
+  "amountCents": 5974
+},
+{
+  "id": "f6f75ce1-e40f-4bfa-95e4-d3a0a2922eae",
+  "date": "2026-03-17",
+  "description": "places et tickets",
+  "amountCents": 1161
+},
+{
+  "id": "d6942620-b320-4160-99ed-dc6c5552716a",
+  "date": "2026-03-17",
+  "description": "places et tickets",
+  "amountCents": 19266
+},
+{
+  "id": "8aaf2430-af8f-4bd2-b7d2-fc99883f4c51",
+  "date": "2026-03-17",
+  "description": "Photo TomPotla",
+  "amountCents": -10000
+},
+{
+  "id": "4956d226-0789-4776-8a1a-5a274a2b0551",
+  "date": "2026-03-17",
+  "description": "places et tickets",
+  "amountCents": 24581
+},
+{
+  "id": "d012fb0c-f978-40fe-89b8-f40bc76a141c",
+  "date": "2026-03-17",
+  "description": "places et tickets",
+  "amountCents": 58101
+},
+{
+  "id": "147cfeac-79f8-45ff-b38d-84489ee8b28b",
+  "date": "2026-03-17",
+  "description": "places et tickets",
+  "amountCents": 183
+},
+{
+  "id": "7384ee6f-b9fa-40fe-9044-975930a9a90c",
+  "date": "2026-03-17",
+  "description": "Bières TomPotla",
+  "amountCents": -49000
+},
+{
+  "id": "de7e2809-129b-49be-883d-02bb4ffb499a",
+  "date": "2026-03-17",
+  "description": "Présatation Boissons BDE",
+  "amountCents": -43170
+},
+{
+  "id": "79b35402-7f2a-4f61-b211-14c032eebf12",
+  "date": "2026-03-17",
+  "description": "Sécurité TomPOTla",
+  "amountCents": -50350
+},
+{
+  "id": "76aaf701-b078-4d2c-aed2-700b1a7691fa",
+  "date": "2026-03-17",
+  "description": "lot TomPOTla",
+  "amountCents": -23910
+},
+{
+  "id": "d6e7c0be-b0bb-43cc-9db7-26ccbdbea794",
+  "date": "2026-03-17",
+  "description": "Prestation soirée TompPotla",
+  "amountCents": -15000
+},
+{
+  "id": "fa958492-c357-4033-b4d4-a697f5f64a1d",
+  "date": "2026-03-17",
+  "description": "lot TomPOTla",
+  "amountCents": -74170
+},
+{
+  "id": "92fffdcb-1399-4924-b954-7af3764128c8",
+  "date": "2026-03-17",
+  "description": "Subvention IPP Tompotla",
+  "amountCents": 427500
 }
 ]
