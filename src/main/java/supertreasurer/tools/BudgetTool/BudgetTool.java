@@ -48,6 +48,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import java.text.Normalizer;
 
 import supertreasurer.tools.ToolModule;
@@ -331,11 +332,12 @@ public class BudgetTool implements ToolModule {
         };
 
         refreshBtn.setOnAction(e -> reloadView.accept(null));
+        DatePicker reportDatePicker = new DatePicker(LocalDate.now());
 
         Button genereBilan= new Button("Générer le bilan LaTeX");
         genereBilan.setOnAction(e -> {
             try {
-                Path tex = createLatex(toolDataDir);
+                Path tex = createLatex(toolDataDir, reportDatePicker.getValue());
                 compileLatexToPdf(tex);
                 refreshStatus.setText("Bilan LaTeX généré avec succès");
             } catch (IOException | InterruptedException ex) {
@@ -364,7 +366,7 @@ public class BudgetTool implements ToolModule {
             new Separator(),
             accordion,
             new Separator(),
-            genereBilan,
+            new HBox(10, new Label("Date du bilan:"), reportDatePicker, genereBilan),
             voirBilans
         );
 
@@ -470,6 +472,39 @@ public class BudgetTool implements ToolModule {
         Files.writeString(ledgerFile, newContent, StandardCharsets.UTF_8);
     }
 
+    private void appendLedgerEntry(Path ledgerFile, String entryId, String date, String description, long amountCents, Path[] selectedFile, Path activityDir) throws IOException {
+        String normalizedDate = date == null ? "" : date;
+        String entryJson = "{\n" +
+            "  \"id\": \"" + escape(entryId) + "\",\n" +
+            "  \"date\": \"" + escape(normalizedDate) + "\",\n" +
+            "  \"description\": \"" + escape(description) + "\",\n" +
+            "  \"amountCents\": " + amountCents + "\n" +
+            "}";
+
+        for (Path file : selectedFile) {
+            if (file != null) {
+                Path attachmentsDir = activityDir.resolve("attachments").resolve(entryId);
+                Files.createDirectories(attachmentsDir);
+                Path target = attachmentsDir.resolve(file.getFileName().toString());
+                Files.copy(file, target);
+            }
+        }
+
+        String content = Files.readString(ledgerFile, StandardCharsets.UTF_8).trim();
+        if (content.equals("[]")) {
+            Files.writeString(ledgerFile, "[\n" + entryJson + "\n]\n", StandardCharsets.UTF_8);
+            return;
+        }
+
+        if (!content.endsWith("]")) {
+            throw new IllegalStateException("ledger.json is not a JSON array");
+        }
+
+        String withoutEnd = content.substring(0, content.length() - 1).trim();
+        String newContent = withoutEnd + ",\n" + entryJson + "\n]\n";
+        Files.writeString(ledgerFile, newContent, StandardCharsets.UTF_8);
+    }
+
     private void openFolder(Path dir) {
         try {
             if (Desktop.isDesktopSupported()) {
@@ -517,7 +552,7 @@ public class BudgetTool implements ToolModule {
             .map(Path::toFile)
             .forEach(File::delete);
     }
-    private Path createLatex(Path toolDataDir) throws IOException {
+    private Path createLatex(Path toolDataDir, LocalDate reportLocalDate) throws IOException {
         Path budgetsDir = toolDataDir;
         Path activitiesDir = budgetsDir.resolve("activities");
         Path bilansDir = budgetsDir.resolve("bilans");
@@ -527,8 +562,8 @@ public class BudgetTool implements ToolModule {
         String sectionTemplate = loadTemplate("budget_activity_section.tex");
         String rowTemplate = loadTemplate("budget_activity_row.tex");
 
-        LocalDate today = LocalDate.now();
-        String reportDate = String.format("%02d/%02d/%04d", today.getDayOfMonth(), today.getMonthValue(), today.getYear());
+        LocalDate reportDateValue = reportLocalDate != null ? reportLocalDate : LocalDate.now();
+        String reportDate = String.format("%02d/%02d/%04d", reportDateValue.getDayOfMonth(), reportDateValue.getMonthValue(), reportDateValue.getYear());
 
         List<ActivityData> activities = loadActivities(activitiesDir);
         createCharts(bilansDir, activities);
@@ -559,7 +594,7 @@ public class BudgetTool implements ToolModule {
         tex = tex.replace("%%CHART_GLOBAL_EXPENSE%%", "charts/global_expense_by_activity.pdf");
         tex = tex.replace("%%PER_ACTIVITY_SECTIONS%%", perActivitySections);
 
-        String fileName = String.format("bilan_%04d-%02d-%02d.tex", today.getYear(), today.getMonthValue(), today.getDayOfMonth());
+        String fileName = String.format("bilan_%04d-%02d-%02d.tex", reportDateValue.getYear(), reportDateValue.getMonthValue(), reportDateValue.getDayOfMonth());
         Path outFile = bilansDir.resolve(fileName);
         Files.writeString(outFile, tex, StandardCharsets.UTF_8);
         return outFile;
@@ -991,12 +1026,14 @@ public class BudgetTool implements ToolModule {
         if (exit2 != 0) throw new RuntimeException("LaTeX compilation failed (pass 2)");
     }
     private class Line {
+        String date;
         String description;
         long amountCents;
         String activity_name;
         Boolean in_bilan;
     
-        public Line(String description, long amountCents, String activity_name, Boolean in_bilan) {
+        public Line(String date, String description, long amountCents, String activity_name, Boolean in_bilan) {
+            this.date = date;
             this.description = description;
             this.amountCents = amountCents;
             this.activity_name = activity_name;
@@ -1028,13 +1065,16 @@ public class BudgetTool implements ToolModule {
     }
     private void extractContentFromSheet(Sheet sheet) {
         extracted_content = new ArrayList<>();
+        DataFormatter dataFormatter = new DataFormatter();
         for (Row row : sheet) {
             if (row.getRowNum() < 3) continue; // skip header
+            Cell dateCell = row.getCell(2);
             Cell descCell = row.getCell(3);
             Cell amountCell = row.getCell(7) ;
             Cell activityCell = row.getCell(4);
             Cell bilanCell = row.getCell(15);
 
+            String date = dateCell != null ? dataFormatter.formatCellValue(dateCell).trim() : "";
             String description = descCell != null ? descCell.getStringCellValue() : "";
             long amountCents = 0;
             if (amountCell != null) {
@@ -1056,7 +1096,7 @@ public class BudgetTool implements ToolModule {
             else {
                 inBilan = true;
             }
-            extracted_content.add(new Line(description, amountCents, activityName, inBilan));
+            extracted_content.add(new Line(date, description, amountCents, activityName, inBilan));
         }
     }
     private void Clear_current_budget_data (Path activitiesDir) throws IOException {
@@ -1082,7 +1122,7 @@ public class BudgetTool implements ToolModule {
         Path activityDir = ensureActivity(activitiesDir, activityId, activityId);
         Path ledgerFile = activityDir.resolve("ledger.json");
         String entryId = UUID.randomUUID().toString();
-        appendLedgerEntry(ledgerFile, entryId, LocalDate.now(), line.description, line.amountCents, new Path[0], activityDir);
+        appendLedgerEntry(ledgerFile, entryId, line.date, line.description, line.amountCents, new Path[0], activityDir);
     }
     private void importFromExcel(Path file, Path activitiesDir) throws IOException {
         Sheet sheet = Open_compte_sheet(file);

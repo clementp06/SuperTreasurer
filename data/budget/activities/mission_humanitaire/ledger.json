@@ -1,38 +1,38 @@
 [
 {
-  "id": "810f8610-98d1-432a-9479-e51cc640059e",
-  "date": "2026-03-17",
+  "id": "fb902eb1-22d6-408c-9f05-750682dccc58",
+  "date": "07/06/2023",
   "description": "Don billet Célio",
   "amountCents": 73215
 },
 {
-  "id": "445ed0be-d7ee-4f8a-bacb-d3eec1b602d5",
-  "date": "2026-03-17",
+  "id": "7c4e22a5-cbd0-4b7c-962e-d064a52a6083",
+  "date": "27/06/2023",
   "description": "Don billet Hamza",
   "amountCents": 76455
 },
 {
-  "id": "2e4cd30f-01f3-4ec6-b92a-7aa0dd78ff13",
-  "date": "2026-03-17",
+  "id": "004a35f8-9a89-4976-8388-0942c4ac581f",
+  "date": "27/06/2023",
   "description": "Don billets et autres",
   "amountCents": 288530
 },
 {
-  "id": "959fb904-e89e-4cbf-9a77-9fe0b4611568",
-  "date": "2026-03-17",
+  "id": "9464ab09-7d13-4998-8c41-0b9c59493aad",
+  "date": "01/07/2023",
+  "description": "Total Mission",
+  "amountCents": -931426
+},
+{
+  "id": "b36c9d79-3700-4d99-a65b-42f742160741",
+  "date": "03/07/2023",
   "description": "Don billets et autres",
   "amountCents": 122215
 },
 {
-  "id": "45a5ff62-1b1c-40e5-afa8-6dfb0f3b0d0b",
-  "date": "2026-03-17",
+  "id": "d6040735-6eff-4202-ae70-938a65db469f",
+  "date": "04/07/2023",
   "description": "Don billets et autres",
   "amountCents": 73300
-},
-{
-  "id": "entry_8ef1f24e-f4d2-42ec-aa52-0cf630a64d07",
-  "date": "2026-03-17",
-  "description": "Total Mission",
-  "amountCents": -931426
 }
 ]

@@ -1,25 +1,25 @@
 [
 {
-  "id": "23dc71b2-c0dc-42c8-b960-1909d5c70ccf",
-  "date": "2026-03-17",
+  "id": "f473f2f4-ff62-4bd3-9c3d-fd8338826523",
+  "date": "17/04/2023",
   "description": "assurance annuelle",
   "amountCents": -10734
 },
 {
-  "id": "55e585cd-216d-448d-82e6-cf9d6e542f7d",
-  "date": "2026-03-17",
+  "id": "a2012dce-c35d-45c2-a66c-f9eb92217eb9",
+  "date": "15/05/2023",
   "description": "Domaine internet",
   "amountCents": -839
 },
 {
-  "id": "1f85c6d4-06d1-41e3-84e2-52d77ca29149",
-  "date": "2026-03-17",
+  "id": "d6e414d6-1e87-4a0b-9515-d6ad542b89ba",
+  "date": "15/05/2023",
   "description": "Domaine internet",
   "amountCents": -599
 },
 {
-  "id": "0bf60426-8de6-4919-9285-ab4a20568dcb",
-  "date": "2026-03-17",
+  "id": "f7d8c49e-180f-48a9-97f6-e2ee38ff17f2",
+  "date": "01/07/2023",
   "description": "Frais de gestion",
   "amountCents": -2507
 }
